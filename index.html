@@ -6,7 +6,65 @@
     <title>FlowDraft</title>
   </head>
   <body>
-    <div id="app"></div>
+
+    <!-- Sign-in screen -->
+    <div id="sign-in-screen" style="display:none">
+      <div class="sign-in-box">
+        <h1>FlowDraft</h1>
+        <p>A personal Mermaid flowchart editor</p>
+        <p id="sign-in-error" class="sign-in-error"></p>
+        <button id="sign-in-btn">Sign in with Google</button>
+      </div>
+    </div>
+
+    <!-- App (authenticated) -->
+    <div id="app" style="display:none">
+      <div class="topbar">
+        <span class="app-title">FlowDraft</span>
+        <div class="topbar-actions">
+          <button id="copy-link-btn">Copy link</button>
+          <button id="new-project-btn">+ New project</button>
+          <button id="sign-out-btn">Sign out</button>
+        </div>
+      </div>
+      <div id="main-layout">
+        <aside id="sidebar">
+          <ul id="project-list"></ul>
+        </aside>
+        <section id="preview-pane">
+          <div id="preview-container"></div>
+          <div id="preview-error" style="display:none"></div>
+          <div id="preview-controls">
+            <div class="theme-btns">
+              <button class="theme-btn" data-theme="default">Default</button>
+              <button class="theme-btn" data-theme="forest">Forest</button>
+              <button class="theme-btn" data-theme="dark">Dark</button>
+              <button class="theme-btn" data-theme="neutral">Neutral</button>
+            </div>
+            <div class="export-btns">
+              <button id="export-svg-btn">Export SVG</button>
+              <button id="export-png-btn">Export PNG</button>
+            </div>
+          </div>
+        </section>
+        <section id="editor-pane">
+          <div id="editor-container"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Share view (read-only, no auth required) -->
+    <div id="share-view" style="display:none">
+      <div class="topbar">
+        <span class="app-title">FlowDraft</span>
+        <span class="share-badge">Read-only preview</span>
+      </div>
+      <div id="share-layout">
+        <div id="share-preview-container"></div>
+        <div id="share-preview-error" style="display:none"></div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

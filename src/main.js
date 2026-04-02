@@ -1,4 +1,5 @@
 import './style.css'
+import mermaid from 'mermaid'
 import { onAuthReady, signOut } from './auth.js'
 import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart } from './storage.js'
 import { createEditor, setEditorCode } from './editor.js'
@@ -29,8 +30,8 @@ initMermaid()
 if (window.location.hash) {
   try {
     const code = decodeURIComponent(atob(window.location.hash.slice(1)))
-    document.getElementById('app').innerHTML = buildShareLayout()
-    renderPreview(code, 'default')
+    document.getElementById('share-view').style.display = ''
+    renderSharePreview(code)
   } catch {
     window.location.hash = ''
     boot()
@@ -40,7 +41,6 @@ if (window.location.hash) {
 }
 
 function boot() {
-  document.getElementById('app').innerHTML = buildAppLayout()
   wireStaticEvents()
   onAuthReady((user) => {
     if (projectsUnsubscribe) { projectsUnsubscribe(); projectsUnsubscribe = null }
@@ -54,56 +54,18 @@ function boot() {
   })
 }
 
-// ── Layout builders ───────────────────────────────────────────────────────────
-
-function buildAppLayout() {
-  return `
-    <div id="topbar">
-      <span class="app-title">FlowDraft</span>
-      <div class="topbar-actions">
-        <button id="copy-link-btn">Copy link</button>
-        <button id="new-project-btn">+ New project</button>
-        <button id="sign-out-btn">Sign out</button>
-      </div>
-    </div>
-    <div id="main-layout">
-      <aside id="sidebar">
-        <ul id="project-list"></ul>
-      </aside>
-      <section id="preview-pane">
-        <div id="preview-container"></div>
-        <div id="preview-error" style="display:none"></div>
-        <div id="preview-controls">
-          <div class="theme-btns">
-            <button class="theme-btn" data-theme="default">Default</button>
-            <button class="theme-btn" data-theme="forest">Forest</button>
-            <button class="theme-btn" data-theme="dark">Dark</button>
-            <button class="theme-btn" data-theme="neutral">Neutral</button>
-          </div>
-          <div class="export-btns">
-            <button id="export-svg-btn">Export SVG</button>
-            <button id="export-png-btn">Export PNG</button>
-          </div>
-        </div>
-      </section>
-      <section id="editor-pane">
-        <div id="editor-container"></div>
-      </section>
-    </div>
-  `
-}
-
-function buildShareLayout() {
-  return `
-    <div id="topbar">
-      <span class="app-title">FlowDraft</span>
-      <span class="share-badge">Read-only preview</span>
-    </div>
-    <div id="share-layout">
-      <div id="preview-container"></div>
-      <div id="preview-error" style="display:none"></div>
-    </div>
-  `
+async function renderSharePreview(code) {
+  const container = document.getElementById('share-preview-container')
+  const errorBar = document.getElementById('share-preview-error')
+  try {
+    const { svg } = await mermaid.render('share-mermaid', code)
+    container.innerHTML = svg
+  } catch (err) {
+    if (errorBar) {
+      errorBar.textContent = err.message || 'Mermaid parse error'
+      errorBar.style.display = 'block'
+    }
+  }
 }
 
 // ── Static event wiring ───────────────────────────────────────────────────────
