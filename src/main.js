@@ -43,8 +43,10 @@ function boot() {
   document.getElementById('app').innerHTML = buildAppLayout()
   wireStaticEvents()
   onAuthReady((user) => {
+    if (projectsUnsubscribe) { projectsUnsubscribe(); projectsUnsubscribe = null }
+    clearChartsSubscription()
+    if (!user) { currentUser = null; return }
     currentUser = user
-    if (projectsUnsubscribe) projectsUnsubscribe()
     projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
       projects = updated
       renderSidebar()
@@ -159,7 +161,6 @@ function renderSidebar() {
     `
   }).join('')
 
-  // Project header clicks: toggle expand/collapse
   list.querySelectorAll('.project-header').forEach((el) => {
     el.addEventListener('click', (e) => {
       if (e.target.classList.contains('project-delete-btn')) return
@@ -167,38 +168,41 @@ function renderSidebar() {
     })
   })
 
-  // Project name double-click: rename
   list.querySelectorAll('.project-name').forEach((el) => {
     el.addEventListener('dblclick', (e) => {
       e.stopPropagation()
-      handleRenameProject(el.dataset.id, el)
+      const p = projects.find((p) => p.id === el.dataset.id)
+      handleRename(p, el, 'Untitled project', (updated) => saveProject(currentUser.uid, updated))
     })
   })
 
-  // Chart name clicks
   list.querySelectorAll('.chart-name').forEach((el) => {
     el.addEventListener('click', () => openChart(el.dataset.id))
-    el.addEventListener('dblclick', () => handleRenameChart(el.dataset.id, el))
+    el.addEventListener('dblclick', () => {
+      const c = charts.find((c) => c.id === el.dataset.id)
+      handleRename(c, el, 'Untitled chart', (updated) => saveChart(currentUser.uid, currentProjectId, updated))
+    })
   })
 }
 
 // ── Project operations ────────────────────────────────────────────────────────
 
+function clearChartsSubscription() {
+  if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
+}
+
 function toggleProject(id) {
+  clearChartsSubscription()
   if (currentProjectId === id) {
-    // Collapse
     currentProjectId = null
     currentChartId = null
     charts = []
-    if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
     openBlankState()
     renderSidebar()
   } else {
-    // Expand and subscribe to charts
     currentProjectId = id
     currentChartId = null
     charts = []
-    if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
     chartsUnsubscribe = subscribeCharts(currentUser.uid, id, (updated) => {
       charts = updated
       renderSidebar()
@@ -218,7 +222,6 @@ async function handleNewProject() {
     updatedAt: null,
   }
   await saveProject(currentUser.uid, project)
-  // Auto-expand the new project
   toggleProject(project.id)
 }
 
@@ -229,25 +232,10 @@ async function handleDeleteProject(id) {
     currentProjectId = null
     currentChartId = null
     charts = []
-    if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
+    clearChartsSubscription()
     openBlankState()
   }
   await deleteProject(currentUser.uid, id)
-}
-
-function handleRenameProject(id, el) {
-  const project = projects.find((p) => p.id === id)
-  if (!project) return
-  el.contentEditable = 'true'
-  el.focus()
-  const finish = async () => {
-    el.contentEditable = 'false'
-    const name = el.textContent.trim() || 'Untitled project'
-    el.textContent = name
-    await saveProject(currentUser.uid, { ...project, name })
-  }
-  el.addEventListener('blur', finish, { once: true })
-  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur() } }, { once: true })
 }
 
 // ── Chart operations ──────────────────────────────────────────────────────────
@@ -256,7 +244,9 @@ function openChart(id) {
   const chart = charts.find((c) => c.id === id)
   if (!chart) return
   currentChartId = id
-  renderSidebar()
+  document.querySelectorAll('.chart-item').forEach((el) => {
+    el.classList.toggle('active', el.dataset.id === id)
+  })
 
   const code = chart.code || DEFAULT_CODE
   if (!editorView) {
@@ -318,16 +308,15 @@ async function handleDeleteChart(id) {
   }
 }
 
-function handleRenameChart(id, el) {
-  const chart = charts.find((c) => c.id === id)
-  if (!chart) return
+function handleRename(item, el, defaultName, onSave) {
+  if (!item) return
   el.contentEditable = 'true'
   el.focus()
   const finish = async () => {
     el.contentEditable = 'false'
-    const name = el.textContent.trim() || 'Untitled chart'
+    const name = el.textContent.trim() || defaultName
     el.textContent = name
-    await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
+    await onSave({ ...item, name })
   }
   el.addEventListener('blur', finish, { once: true })
   el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur() } }, { once: true })

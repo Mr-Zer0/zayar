@@ -26,6 +26,7 @@ export function onAuthReady(callback) {
       hideSignInScreen()
       callback(user)
     } else {
+      callback(null)
       showSignInScreen()
     }
   })
