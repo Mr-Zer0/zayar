@@ -99,25 +99,25 @@ function renderSidebar() {
     const toggle = isExpanded ? '▼' : '▶'
 
     const chartsHtml = isExpanded ? `
-      <ul class="project-charts">
+      <ul class="list-none">
         ${charts.map((c) => `
-          <li class="chart-item ${c.id === currentChartId ? 'active' : ''}" data-id="${c.id}">
-            <span class="chart-name" data-id="${c.id}">${escapeHtml(c.name)}</span>
-            <button class="chart-delete-btn" data-id="${c.id}" title="Delete">×</button>
+          <li class="chart-item flex items-center py-1.5 pl-7 pr-3 cursor-pointer gap-1.5 hover:bg-slate-100 border-l-[3px] border-l-transparent ${c.id === currentChartId ? 'active' : ''}" data-id="${c.id}">
+            <span class="chart-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px]" data-id="${c.id}">${escapeHtml(c.name)}</span>
+            <button class="chart-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500" data-id="${c.id}" title="Delete">×</button>
           </li>
         `).join('')}
-        <li class="new-chart-item">
-          <button class="new-chart-btn-inline">+ New chart</button>
+        <li class="py-1 pl-7 pr-3 pb-2">
+          <button class="new-chart-btn-inline text-blue-600 text-xs cursor-pointer rounded hover:bg-slate-100">+ New chart</button>
         </li>
       </ul>
     ` : ''
 
     return `
-      <li class="project-item" data-id="${p.id}">
-        <div class="project-header" data-id="${p.id}">
-          <span class="project-toggle">${toggle}</span>
-          <span class="project-name" data-id="${p.id}">${escapeHtml(p.name)}</span>
-          <button class="project-delete-btn" data-id="${p.id}" title="Delete project">×</button>
+      <li class="border-l-[3px] border-l-transparent" data-id="${p.id}">
+        <div class="project-header flex items-center px-3 py-2 cursor-pointer gap-1.5 hover:bg-slate-100" data-id="${p.id}">
+          <span class="project-toggle text-[10px] text-gray-500 shrink-0 w-3">${toggle}</span>
+          <span class="project-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold" data-id="${p.id}">${escapeHtml(p.name)}</span>
+          <button class="project-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500" data-id="${p.id}" title="Delete project">×</button>
         </div>
         ${chartsHtml}
       </li>
@@ -224,7 +224,7 @@ function openChart(id) {
 function openBlankState() {
   const container = document.getElementById('editor-container')
   if (!container) return
-  container.innerHTML = '<p class="blank-state">No charts yet. Create one to get started.</p>'
+  container.innerHTML = '<p class="text-gray-500 p-6 text-[13px]">No charts yet. Create one to get started.</p>'
   editorView = null
   const preview = document.getElementById('preview-container')
   if (preview) preview.innerHTML = ''

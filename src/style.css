@@ -1,118 +1,42 @@
 @import "tailwindcss";
 
-/* ── Base ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body { height: 100%; font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; font-size: 14px; }
-
-/* ── Sign-in screen ── */
-#sign-in-screen {
-  @apply flex items-center justify-center h-screen bg-[#f5f5f5];
-}
-.sign-in-box {
-  @apply text-center p-10 bg-white rounded-xl border border-gray-300 min-w-[300px];
-}
-.sign-in-box h1 { @apply text-3xl mb-2 text-blue-600; }
-.sign-in-box p { @apply text-gray-500 mb-4; }
-.sign-in-error { @apply text-[#ff6b6b] text-[13px] min-h-[18px]; }
-
-/* ── App layout ── */
-#app { @apply flex flex-col h-screen; }
-
-.topbar {
-  @apply h-12 bg-white border-b border-gray-300 flex items-center px-4 gap-3 shrink-0;
-}
-.app-title { @apply text-lg font-bold text-blue-600 flex-1; }
-.share-badge { @apply text-xs text-gray-500 bg-slate-100 px-2.5 py-0.5 rounded-full; }
-.topbar-actions { @apply flex gap-2; }
-
-#main-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr 1fr;
-  @apply flex-1 overflow-hidden;
-}
-
-/* ── Sidebar ── */
-#sidebar { @apply bg-white border-r border-gray-300 flex flex-col overflow-hidden; }
-#project-list { @apply flex-1 overflow-y-auto py-2 list-none; }
-#sidebar-footer {
-  @apply shrink-0 border-t border-gray-300 px-3 py-2 flex items-center gap-2;
-}
-#user-name { @apply flex-1 text-xs text-gray-500 truncate; }
-
-/* ── Project items ── */
-.project-item { border-left: 3px solid transparent; }
-.project-header { @apply flex items-center px-3 py-2 cursor-pointer gap-1.5 hover:bg-slate-100; }
-.project-toggle { @apply text-[10px] text-gray-500 shrink-0 w-3; }
-.project-name {
-  @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold;
-}
-.project-name[contenteditable="true"] { @apply outline outline-1 outline-blue-600 rounded-sm px-0.5; }
-.project-delete-btn {
-  @apply bg-transparent border-0 text-gray-500 cursor-pointer text-base leading-none px-0.5 opacity-0;
-}
-.project-header:hover .project-delete-btn { @apply opacity-100; }
-.project-delete-btn:hover { @apply text-red-500; }
-
-/* ── Chart items ── */
-.project-charts { list-style: none; }
-.chart-item {
-  @apply flex items-center py-1.5 px-3 cursor-pointer gap-1.5 hover:bg-slate-100;
-  padding-left: 28px;
-  border-left: 3px solid transparent;
-}
-.chart-item.active { border-left-color: #2563eb; @apply bg-slate-100; }
-.chart-name { @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px]; }
-.chart-name[contenteditable="true"] { @apply outline outline-1 outline-blue-600 rounded-sm px-0.5; }
-.chart-delete-btn {
-  @apply bg-transparent border-0 text-gray-500 cursor-pointer text-base leading-none px-0.5 opacity-0;
-}
-.chart-item:hover .chart-delete-btn { @apply opacity-100; }
-.chart-delete-btn:hover { @apply text-red-500; }
-
-/* ── New chart inline button ── */
-.new-chart-item { @apply py-1 px-3 pb-2; padding-left: 28px; }
-.new-chart-btn-inline {
-  @apply bg-transparent border-0 text-blue-600 text-xs px-1 py-0.5 cursor-pointer rounded hover:bg-slate-100;
-}
-
-/* ── Preview pane ── */
-#preview-pane { @apply flex flex-col border-r border-gray-300 overflow-hidden bg-white; }
-#preview-container {
-  @apply flex-1 overflow-auto p-4 flex items-start justify-center;
-}
-#preview-container svg { @apply max-w-full h-auto; }
-
-#preview-error {
-  @apply bg-red-500 text-white text-xs px-3 py-1.5 whitespace-pre-wrap break-all;
-}
-
-#preview-controls {
-  @apply bg-white border-t border-gray-300 px-3 py-2 flex justify-between items-center gap-2 shrink-0;
-}
-.theme-btns, .export-btns { @apply flex gap-1.5; }
-
-/* ── Editor pane ── */
-#editor-pane { @apply flex flex-col overflow-hidden bg-[#fafafa]; }
-#editor-container { @apply flex-1 overflow-hidden; }
-#editor-container .cm-editor { height: 100%; }
-
-.blank-state { @apply text-gray-500 p-6 text-[13px]; }
-
-/* ── Share layout ── */
-#share-view { @apply flex flex-col h-screen; }
-#share-layout { @apply flex-1 flex flex-col bg-white overflow-auto; }
-#share-preview-container { @apply flex-1 overflow-auto p-4 flex items-start justify-center; }
-#share-preview-container svg { @apply max-w-full h-auto; }
-#share-preview-error { @apply bg-red-500 text-white text-xs px-3 py-1.5 whitespace-pre-wrap break-all; }
+html, body { height: 100%; font-family: system-ui, sans-serif; font-size: 14px; }
 
 /* ── Buttons ── */
 button {
-  @apply bg-slate-100 text-gray-900 border border-gray-300 rounded-md px-3 py-[5px] text-[13px] cursor-pointer;
+  background: #e8edf2;
+  color: #1a1a1a;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
   transition: background 0.15s;
 }
-button:hover { @apply bg-[#d1dce8]; }
-button.active { @apply bg-blue-600 border-blue-600 text-white; }
+button:hover { background: #d1dce8; }
+button.active { background: #2563eb; border-color: #2563eb; color: #fff; }
 
-#new-project-btn { @apply bg-blue-600 border-blue-600 text-white; }
-#new-project-btn:hover { @apply bg-blue-700; }
+#new-project-btn { background: #2563eb; border-color: #2563eb; color: #fff; }
+#new-project-btn:hover { background: #1d4ed8; }
+
+/* Ghost buttons — reset the global button styles */
+.project-delete-btn,
+.chart-delete-btn,
+.new-chart-btn-inline { background: transparent; border: none; padding: 0; }
+
+/* Show delete button when hovering the parent row */
+.project-header:hover .project-delete-btn,
+.chart-item:hover .chart-delete-btn { opacity: 1; }
+
+/* Active chart in sidebar */
+.chart-item.active { border-left-color: #2563eb; background: #f1f5f9; }
+
+/* Inline rename */
+[contenteditable="true"] { outline: 1px solid #2563eb; border-radius: 2px; padding: 0 2px; }
+
+/* CodeMirror */
+#editor-container .cm-editor { height: 100%; }
+
+/* SVG output sizing */
+#preview-container svg,
+#share-preview-container svg { max-width: 100%; height: auto; }
