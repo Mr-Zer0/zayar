@@ -33,8 +33,12 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #f5f5
 }
 
 /* ── Sidebar ── */
-#sidebar { @apply bg-white border-r border-gray-300 overflow-y-auto py-2; }
-#project-list { list-style: none; }
+#sidebar { @apply bg-white border-r border-gray-300 flex flex-col overflow-hidden; }
+#project-list { @apply flex-1 overflow-y-auto py-2 list-none; }
+#sidebar-footer {
+  @apply shrink-0 border-t border-gray-300 px-3 py-2 flex items-center gap-2;
+}
+#user-name { @apply flex-1 text-xs text-gray-500 truncate; }
 
 /* ── Project items ── */
 .project-item { border-left: 3px solid transparent; }

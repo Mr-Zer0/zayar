@@ -47,6 +47,7 @@ function boot() {
     clearChartsSubscription()
     if (!user) { currentUser = null; return }
     currentUser = user
+    document.getElementById('user-name').textContent = user.displayName || user.email
     projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
       projects = updated
       renderSidebar()
