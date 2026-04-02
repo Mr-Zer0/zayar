@@ -2,7 +2,6 @@ import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSp
 import { EditorState } from '@codemirror/state'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
-import { oneDark } from '@codemirror/theme-one-dark'
 
 export function createEditor(container, initialCode, onChange) {
   const view = new EditorView({
@@ -20,7 +19,6 @@ export function createEditor(container, initialCode, onChange) {
         highlightActiveLine(),
         keymap.of([...defaultKeymap, ...historyKeymap]),
         markdown(),
-        oneDark,
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChange(update.state.doc.toString())
