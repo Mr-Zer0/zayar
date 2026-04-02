@@ -1,6 +1,6 @@
 import './style.css'
 import { onAuthReady, signOut } from './auth.js'
-import { saveChart, deleteChart, subscribeCharts } from './storage.js'
+import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart } from './storage.js'
 import { createEditor, setEditorCode } from './editor.js'
 import { initMermaid, renderPreview, exportSVG, exportPNG, setTheme } from './preview.js'
 
@@ -11,10 +11,13 @@ const DEFAULT_CODE = `flowchart TD
     D --> B`
 
 let currentUser = null
+let currentProjectId = null
 let currentChartId = null
+let projects = []
 let charts = []
 let editorView = null
-let unsubscribe = null
+let projectsUnsubscribe = null
+let chartsUnsubscribe = null
 let previewDebounce = null
 let saveDebounce = null
 
@@ -41,12 +44,10 @@ function boot() {
   wireStaticEvents()
   onAuthReady((user) => {
     currentUser = user
-    if (unsubscribe) unsubscribe()
-    unsubscribe = subscribeCharts(user.uid, (updated) => {
-      charts = updated
+    if (projectsUnsubscribe) projectsUnsubscribe()
+    projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
+      projects = updated
       renderSidebar()
-      if (!currentChartId && charts.length > 0) openChart(charts[0].id)
-      else if (!currentChartId) openBlankState()
     })
   })
 }
@@ -59,13 +60,13 @@ function buildAppLayout() {
       <span class="app-title">FlowDraft</span>
       <div class="topbar-actions">
         <button id="copy-link-btn">Copy link</button>
-        <button id="new-chart-btn">+ New chart</button>
+        <button id="new-project-btn">+ New project</button>
         <button id="sign-out-btn">Sign out</button>
       </div>
     </div>
     <div id="main-layout">
       <aside id="sidebar">
-        <ul id="chart-list"></ul>
+        <ul id="project-list"></ul>
       </aside>
       <section id="preview-pane">
         <div id="preview-container"></div>
@@ -110,32 +111,143 @@ function wireStaticEvents() {
     const btn = e.target.closest('button')
     if (!btn) return
 
-    if (btn.id === 'new-chart-btn') handleNewChart()
+    if (btn.id === 'new-project-btn') handleNewProject()
     else if (btn.id === 'copy-link-btn') handleCopyLink()
     else if (btn.id === 'sign-out-btn') signOut()
     else if (btn.id === 'export-svg-btn') exportSVG()
     else if (btn.id === 'export-png-btn') exportPNG()
     else if (btn.classList.contains('theme-btn')) handleThemeSwitch(btn.dataset.theme)
+    else if (btn.classList.contains('project-delete-btn')) handleDeleteProject(btn.dataset.id)
     else if (btn.classList.contains('chart-delete-btn')) handleDeleteChart(btn.dataset.id)
+    else if (btn.classList.contains('new-chart-btn-inline')) handleNewChart()
   })
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 function renderSidebar() {
-  const list = document.getElementById('chart-list')
+  const list = document.getElementById('project-list')
   if (!list) return
-  list.innerHTML = charts.map((c) => `
-    <li class="chart-item ${c.id === currentChartId ? 'active' : ''}" data-id="${c.id}">
-      <span class="chart-name" data-id="${c.id}">${escapeHtml(c.name)}</span>
-      <button class="chart-delete-btn" data-id="${c.id}" title="Delete">×</button>
-    </li>
-  `).join('')
 
+  list.innerHTML = projects.map((p) => {
+    const isExpanded = p.id === currentProjectId
+    const toggle = isExpanded ? '▼' : '▶'
+
+    const chartsHtml = isExpanded ? `
+      <ul class="project-charts">
+        ${charts.map((c) => `
+          <li class="chart-item ${c.id === currentChartId ? 'active' : ''}" data-id="${c.id}">
+            <span class="chart-name" data-id="${c.id}">${escapeHtml(c.name)}</span>
+            <button class="chart-delete-btn" data-id="${c.id}" title="Delete">×</button>
+          </li>
+        `).join('')}
+        <li class="new-chart-item">
+          <button class="new-chart-btn-inline">+ New chart</button>
+        </li>
+      </ul>
+    ` : ''
+
+    return `
+      <li class="project-item" data-id="${p.id}">
+        <div class="project-header" data-id="${p.id}">
+          <span class="project-toggle">${toggle}</span>
+          <span class="project-name" data-id="${p.id}">${escapeHtml(p.name)}</span>
+          <button class="project-delete-btn" data-id="${p.id}" title="Delete project">×</button>
+        </div>
+        ${chartsHtml}
+      </li>
+    `
+  }).join('')
+
+  // Project header clicks: toggle expand/collapse
+  list.querySelectorAll('.project-header').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('project-delete-btn')) return
+      toggleProject(el.dataset.id)
+    })
+  })
+
+  // Project name double-click: rename
+  list.querySelectorAll('.project-name').forEach((el) => {
+    el.addEventListener('dblclick', (e) => {
+      e.stopPropagation()
+      handleRenameProject(el.dataset.id, el)
+    })
+  })
+
+  // Chart name clicks
   list.querySelectorAll('.chart-name').forEach((el) => {
     el.addEventListener('click', () => openChart(el.dataset.id))
-    el.addEventListener('dblclick', () => handleRename(el.dataset.id, el))
+    el.addEventListener('dblclick', () => handleRenameChart(el.dataset.id, el))
   })
+}
+
+// ── Project operations ────────────────────────────────────────────────────────
+
+function toggleProject(id) {
+  if (currentProjectId === id) {
+    // Collapse
+    currentProjectId = null
+    currentChartId = null
+    charts = []
+    if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
+    openBlankState()
+    renderSidebar()
+  } else {
+    // Expand and subscribe to charts
+    currentProjectId = id
+    currentChartId = null
+    charts = []
+    if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
+    chartsUnsubscribe = subscribeCharts(currentUser.uid, id, (updated) => {
+      charts = updated
+      renderSidebar()
+      if (!currentChartId && charts.length > 0) openChart(charts[0].id)
+      else if (!currentChartId) openBlankState()
+    })
+  }
+}
+
+async function handleNewProject() {
+  if (!currentUser) return
+  const project = {
+    id: crypto.randomUUID(),
+    name: 'Untitled project',
+    description: '',
+    createdAt: null,
+    updatedAt: null,
+  }
+  await saveProject(currentUser.uid, project)
+  // Auto-expand the new project
+  toggleProject(project.id)
+}
+
+async function handleDeleteProject(id) {
+  if (!currentUser) return
+  if (!confirm('Delete this project and all its charts?')) return
+  if (currentProjectId === id) {
+    currentProjectId = null
+    currentChartId = null
+    charts = []
+    if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
+    openBlankState()
+  }
+  await deleteProject(currentUser.uid, id)
+}
+
+function handleRenameProject(id, el) {
+  const project = projects.find((p) => p.id === id)
+  if (!project) return
+  el.contentEditable = 'true'
+  el.focus()
+  const finish = async () => {
+    el.contentEditable = 'false'
+    const name = el.textContent.trim() || 'Untitled project'
+    el.textContent = name
+    await saveProject(currentUser.uid, { ...project, name })
+  }
+  el.addEventListener('blur', finish, { once: true })
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur() } }, { once: true })
 }
 
 // ── Chart operations ──────────────────────────────────────────────────────────
@@ -160,7 +272,9 @@ function openBlankState() {
   const container = document.getElementById('editor-container')
   if (!container) return
   container.innerHTML = '<p class="blank-state">No charts yet. Create one to get started.</p>'
-  document.getElementById('preview-container').innerHTML = ''
+  editorView = null
+  const preview = document.getElementById('preview-container')
+  if (preview) preview.innerHTML = ''
 }
 
 function onEditorChange(code) {
@@ -171,15 +285,15 @@ function onEditorChange(code) {
     renderPreview(code, chart?.theme || 'default')
   }, 300)
   saveDebounce = setTimeout(() => {
-    if (!currentUser || !currentChartId) return
+    if (!currentUser || !currentProjectId || !currentChartId) return
     const chart = charts.find((c) => c.id === currentChartId)
     if (!chart) return
-    saveChart(currentUser.uid, { ...chart, code }).catch(console.error)
+    saveChart(currentUser.uid, currentProjectId, { ...chart, code }).catch(console.error)
   }, 1500)
 }
 
 async function handleNewChart() {
-  if (!currentUser) return
+  if (!currentUser || !currentProjectId) return
   const chart = {
     id: crypto.randomUUID(),
     name: 'Untitled chart',
@@ -188,15 +302,14 @@ async function handleNewChart() {
     createdAt: null,
     updatedAt: null,
   }
-  await saveChart(currentUser.uid, chart)
-  // subscribeCharts will update `charts` and trigger renderSidebar
+  await saveChart(currentUser.uid, currentProjectId, chart)
   currentChartId = chart.id
 }
 
 async function handleDeleteChart(id) {
-  if (!currentUser) return
+  if (!currentUser || !currentProjectId) return
   if (!confirm('Delete this chart?')) return
-  await deleteChart(currentUser.uid, id)
+  await deleteChart(currentUser.uid, currentProjectId, id)
   if (currentChartId === id) {
     currentChartId = null
     const next = charts.find((c) => c.id !== id)
@@ -205,7 +318,7 @@ async function handleDeleteChart(id) {
   }
 }
 
-function handleRename(id, el) {
+function handleRenameChart(id, el) {
   const chart = charts.find((c) => c.id === id)
   if (!chart) return
   el.contentEditable = 'true'
@@ -214,7 +327,7 @@ function handleRename(id, el) {
     el.contentEditable = 'false'
     const name = el.textContent.trim() || 'Untitled chart'
     el.textContent = name
-    await saveChart(currentUser.uid, { ...chart, name })
+    await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
   }
   el.addEventListener('blur', finish, { once: true })
   el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur() } }, { once: true })
@@ -223,12 +336,12 @@ function handleRename(id, el) {
 // ── Theme ─────────────────────────────────────────────────────────────────────
 
 function handleThemeSwitch(theme) {
-  if (!currentUser || !currentChartId) return
+  if (!currentUser || !currentProjectId || !currentChartId) return
   const chart = charts.find((c) => c.id === currentChartId)
   if (!chart) return
   setTheme(theme)
   highlightThemeBtn(theme)
-  saveChart(currentUser.uid, { ...chart, theme }).catch(console.error)
+  saveChart(currentUser.uid, currentProjectId, { ...chart, theme }).catch(console.error)
 }
 
 function highlightThemeBtn(theme) {
