@@ -1,214 +1,111 @@
+@import "tailwindcss";
+
+/* ── Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
-  --bg: #f5f5f5;
-  --surface: #ffffff;
-  --surface2: #e8edf2;
-  --accent: #2563eb;
-  --text: #1a1a1a;
-  --text-muted: #6b7280;
-  --border: #d1d5db;
-  --sidebar-w: 220px;
-  --topbar-h: 48px;
-}
-
-html, body { height: 100%; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+html, body { height: 100%; font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; font-size: 14px; }
 
 /* ── Sign-in screen ── */
 #sign-in-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: var(--bg);
+  @apply flex items-center justify-center h-screen bg-[#f5f5f5];
 }
 .sign-in-box {
-  text-align: center;
-  padding: 40px;
-  background: var(--surface);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  min-width: 300px;
+  @apply text-center p-10 bg-white rounded-xl border border-gray-300 min-w-[300px];
 }
-.sign-in-box h1 { font-size: 28px; margin-bottom: 8px; color: var(--accent); }
-.sign-in-box p { color: var(--text-muted); margin-bottom: 16px; }
-.sign-in-error { color: #ff6b6b; font-size: 13px; min-height: 18px; }
+.sign-in-box h1 { @apply text-3xl mb-2 text-blue-600; }
+.sign-in-box p { @apply text-gray-500 mb-4; }
+.sign-in-error { @apply text-[#ff6b6b] text-[13px] min-h-[18px]; }
 
 /* ── App layout ── */
-#app { display: flex; flex-direction: column; height: 100vh; }
+#app { @apply flex flex-col h-screen; }
 
 #topbar {
-  height: var(--topbar-h);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  gap: 12px;
-  flex-shrink: 0;
+  @apply h-12 bg-white border-b border-gray-300 flex items-center px-4 gap-3 shrink-0;
 }
-.app-title { font-size: 18px; font-weight: 700; color: var(--accent); flex: 1; }
-.share-badge { font-size: 12px; color: var(--text-muted); background: var(--surface2); padding: 2px 10px; border-radius: 20px; }
-.topbar-actions { display: flex; gap: 8px; }
+.app-title { @apply text-lg font-bold text-blue-600 flex-1; }
+.share-badge { @apply text-xs text-gray-500 bg-slate-100 px-2.5 py-0.5 rounded-full; }
+.topbar-actions { @apply flex gap-2; }
 
 #main-layout {
   display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr 1fr;
-  flex: 1;
-  overflow: hidden;
+  grid-template-columns: 220px 1fr 1fr;
+  @apply flex-1 overflow-hidden;
 }
 
 /* ── Sidebar ── */
-#sidebar {
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  padding: 8px 0;
-}
+#sidebar { @apply bg-white border-r border-gray-300 overflow-y-auto py-2; }
 #project-list { list-style: none; }
 
 /* ── Project items ── */
 .project-item { border-left: 3px solid transparent; }
-.project-header {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
-  gap: 6px;
-}
-.project-header:hover { background: var(--surface2); }
-.project-toggle { font-size: 10px; color: var(--text-muted); flex-shrink: 0; width: 12px; }
+.project-header { @apply flex items-center px-3 py-2 cursor-pointer gap-1.5 hover:bg-slate-100; }
+.project-toggle { @apply text-[10px] text-gray-500 shrink-0 w-3; }
 .project-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: 600;
+  @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold;
 }
-.project-name[contenteditable="true"] { outline: 1px solid var(--accent); border-radius: 2px; padding: 0 2px; }
+.project-name[contenteditable="true"] { @apply outline outline-1 outline-blue-600 rounded-sm px-0.5; }
 .project-delete-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0 2px;
-  opacity: 0;
+  @apply bg-transparent border-0 text-gray-500 cursor-pointer text-base leading-none px-0.5 opacity-0;
 }
-.project-header:hover .project-delete-btn { opacity: 1; }
-.project-delete-btn:hover { color: #ef4444; }
+.project-header:hover .project-delete-btn { @apply opacity-100; }
+.project-delete-btn:hover { @apply text-red-500; }
 
-/* ── Chart items (inside project) ── */
+/* ── Chart items ── */
 .project-charts { list-style: none; }
 .chart-item {
-  display: flex;
-  align-items: center;
-  padding: 6px 12px 6px 28px;
-  cursor: pointer;
+  @apply flex items-center py-1.5 px-3 cursor-pointer gap-1.5 hover:bg-slate-100;
+  padding-left: 28px;
   border-left: 3px solid transparent;
-  gap: 6px;
 }
-.chart-item:hover { background: var(--surface2); }
-.chart-item.active { border-left-color: var(--accent); background: var(--surface2); }
-.chart-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-.chart-name[contenteditable="true"] { outline: 1px solid var(--accent); border-radius: 2px; padding: 0 2px; }
+.chart-item.active { border-left-color: #2563eb; @apply bg-slate-100; }
+.chart-name { @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px]; }
+.chart-name[contenteditable="true"] { @apply outline outline-1 outline-blue-600 rounded-sm px-0.5; }
 .chart-delete-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0 2px;
-  opacity: 0;
+  @apply bg-transparent border-0 text-gray-500 cursor-pointer text-base leading-none px-0.5 opacity-0;
 }
-.chart-item:hover .chart-delete-btn { opacity: 1; }
-.chart-delete-btn:hover { color: #ef4444; }
+.chart-item:hover .chart-delete-btn { @apply opacity-100; }
+.chart-delete-btn:hover { @apply text-red-500; }
 
 /* ── New chart inline button ── */
-.new-chart-item { padding: 4px 12px 8px 28px; }
+.new-chart-item { @apply py-1 px-3 pb-2; padding-left: 28px; }
 .new-chart-btn-inline {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 12px;
-  padding: 2px 4px;
-  cursor: pointer;
-  border-radius: 4px;
+  @apply bg-transparent border-0 text-blue-600 text-xs px-1 py-0.5 cursor-pointer rounded hover:bg-slate-100;
 }
-.new-chart-btn-inline:hover { background: var(--surface2); }
 
 /* ── Preview pane ── */
-#preview-pane {
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--border);
-  overflow: hidden;
-  background: #fff;
-}
+#preview-pane { @apply flex flex-col border-r border-gray-300 overflow-hidden bg-white; }
 #preview-container {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  @apply flex-1 overflow-auto p-4 flex items-start justify-center;
 }
-#preview-container svg { max-width: 100%; height: auto; }
+#preview-container svg { @apply max-w-full h-auto; }
 
 #preview-error {
-  background: #ff4444;
-  color: #fff;
-  font-size: 12px;
-  padding: 6px 12px;
-  white-space: pre-wrap;
-  word-break: break-all;
+  @apply bg-red-500 text-white text-xs px-3 py-1.5 whitespace-pre-wrap break-all;
 }
 
 #preview-controls {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  @apply bg-white border-t border-gray-300 px-3 py-2 flex justify-between items-center gap-2 shrink-0;
 }
-.theme-btns, .export-btns { display: flex; gap: 6px; }
+.theme-btns, .export-btns { @apply flex gap-1.5; }
 
 /* ── Editor pane ── */
-#editor-pane { display: flex; flex-direction: column; overflow: hidden; background: #fafafa; }
-#editor-container { flex: 1; overflow: hidden; }
+#editor-pane { @apply flex flex-col overflow-hidden bg-[#fafafa]; }
+#editor-container { @apply flex-1 overflow-hidden; }
 #editor-container .cm-editor { height: 100%; }
 
-.blank-state { color: var(--text-muted); padding: 24px; font-size: 13px; }
+.blank-state { @apply text-gray-500 p-6 text-[13px]; }
 
 /* ── Share layout ── */
-#share-layout {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  overflow: auto;
-}
-#share-layout #preview-container { flex: 1; }
+#share-layout { @apply flex-1 flex flex-col bg-white overflow-auto; }
+#share-layout #preview-container { @apply flex-1; }
 
 /* ── Buttons ── */
 button {
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 13px;
-  cursor: pointer;
+  @apply bg-slate-100 text-gray-900 border border-gray-300 rounded-md px-3 py-[5px] text-[13px] cursor-pointer;
   transition: background 0.15s;
 }
-button:hover { background: #d1dce8; }
-button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:hover { @apply bg-[#d1dce8]; }
+button.active { @apply bg-blue-600 border-blue-600 text-white; }
 
-#new-project-btn { background: var(--accent); border-color: var(--accent); color: #fff; }
-#new-project-btn:hover { background: #1d4ed8; }
+#new-project-btn { @apply bg-blue-600 border-blue-600 text-white; }
+#new-project-btn:hover { @apply bg-blue-700; }
