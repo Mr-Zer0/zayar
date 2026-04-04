@@ -1,53 +1,34 @@
 import mermaid from 'mermaid'
 
 let currentTheme = 'default'
-let lastCode = ''
 
 export function initMermaid() {
   mermaid.initialize({ startOnLoad: false, theme: currentTheme, securityLevel: 'loose' })
 }
 
-export async function renderPreview(code, theme) {
+export async function renderMermaid(code, theme) {
   if (theme && theme !== currentTheme) {
     currentTheme = theme
     mermaid.initialize({ startOnLoad: false, theme: currentTheme, securityLevel: 'loose' })
   }
-  lastCode = code
-  const container = document.getElementById('preview-container')
-  const errorBar = document.getElementById('preview-error')
-  if (!container) return
-
   try {
     const id = 'mermaid-' + Date.now()
     const { svg } = await mermaid.render(id, code)
-    container.innerHTML = svg
-    if (errorBar) {
-      errorBar.textContent = ''
-      errorBar.style.display = 'none'
-    }
+    return { svg, error: null }
   } catch (err) {
-    if (errorBar) {
-      errorBar.textContent = err.message || 'Mermaid parse error'
-      errorBar.style.display = 'block'
-    }
-    // Keep previous render visible — do not clear container
+    return { svg: null, error: err.message || 'Mermaid parse error' }
   }
 }
 
-export function setTheme(theme) {
-  currentTheme = theme
-  if (lastCode) renderPreview(lastCode, theme)
-}
-
-export function exportSVG() {
-  const svg = document.querySelector('#preview-container svg')
+export function exportSVG(containerEl) {
+  const svg = containerEl?.querySelector('svg')
   if (!svg) return
   const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' })
   downloadBlob(blob, 'chart.svg')
 }
 
-export function exportPNG() {
-  const svg = document.querySelector('#preview-container svg')
+export function exportPNG(containerEl) {
+  const svg = containerEl?.querySelector('svg')
   if (!svg) return
   const scale = 2
   const width = svg.getBoundingClientRect().width || 800

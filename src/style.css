@@ -2,24 +2,7 @@
 
 html, body { height: 100%; font-family: system-ui, sans-serif; font-size: 14px; }
 
-/* ── Buttons ── */
-/* button {
-  background: #e8edf2;
-  color: #1a1a1a;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-button:hover { background: #d1dce8; }
-button.active { background: #2563eb; border-color: #2563eb; color: #fff; } */
-
-#new-project-btn { background: #2563eb; border-color: #2563eb; color: #fff; }
-#new-project-btn:hover { background: #1d4ed8; }
-
-/* Ghost buttons — reset the global button styles */
+/* Ghost buttons */
 .project-delete-btn,
 .chart-delete-btn,
 .new-chart-btn-inline { background: transparent; border: none; padding: 0; }
@@ -35,8 +18,7 @@ button.active { background: #2563eb; border-color: #2563eb; color: #fff; } */
 [contenteditable="true"] { outline: 1px solid #2563eb; border-radius: 2px; padding: 0 2px; }
 
 /* CodeMirror */
-#editor-container .cm-editor { height: 100%; }
+.cm-editor { height: 100%; }
 
 /* SVG output sizing */
-#preview-container svg,
-#share-preview-container svg { max-width: 100%; height: auto; }
+.preview-container svg { max-width: 100%; height: auto; }
