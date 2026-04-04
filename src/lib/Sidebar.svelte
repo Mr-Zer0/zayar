@@ -34,17 +34,17 @@
 
 <aside class="w-[260px] shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
   <!-- App name -->
-  <div class="shrink-0 px-5 h-12 flex items-center border-b border-slate-200">
-    <span class="text-lg font-bold text-blue-600">Zayar</span>
+  <div class="shrink-0 px-5 h-16 flex items-center">
+    <span class="text-lg font-bold text-slate-800">Zayar</span>
   </div>
 
   <!-- Home nav item -->
-  <div class="shrink-0 border-b border-slate-200">
+  <div class="shrink-0">
     <button
-      class="flex items-center gap-2.5 w-full px-5 py-3 text-[13px] font-semibold cursor-pointer {!currentProjectId ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-100'}"
+      class="flex items-center gap-3.5 w-full px-5 py-3 cursor-pointer text-slate-600 hover:bg-slate-50"
       onclick={onGoHome}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-[18px] shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
       </svg>
       Home
