@@ -15,6 +15,14 @@
     onGoHome,
   } = $props()
 
+  let searchQuery = $state('')
+
+  let filteredCharts = $derived(
+    searchQuery.trim()
+      ? charts.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : null
+  )
+
   function handleRename(item, el, defaultName, onSave) {
     if (!item) return
     el.contentEditable = 'true'
@@ -38,6 +46,25 @@
     <span class="text-lg font-bold text-slate-800">Zayar</span>
   </div>
 
+  <!-- Search box -->
+  <div class="shrink-0 px-4 pb-2">
+    <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200">
+      <input
+        type="text"
+        placeholder="Search charts..."
+        bind:value={searchQuery}
+        class="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none min-w-0"
+      />
+      {#if searchQuery}
+        <button onclick={() => searchQuery = ''} class="text-slate-400 hover:text-slate-600 leading-none shrink-0">×</button>
+      {:else}
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-slate-400 shrink-0">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      {/if}
+    </div>
+  </div>
+
   <!-- Home nav item -->
   <div class="shrink-0">
     <button
@@ -52,6 +79,19 @@
   </div>
 
   <ul class="flex-1 overflow-y-auto py-2 list-none">
+    {#if filteredCharts}
+      {#if filteredCharts.length === 0}
+        <li class="px-5 py-3 text-sm text-slate-400">No charts found</li>
+      {/if}
+      {#each filteredCharts as chart (chart.id)}
+        <li class="chart-item flex items-center py-1.5 pl-5 pr-3 cursor-pointer gap-1.5 hover:bg-slate-100 border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
+          <span
+            class="chart-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px]"
+            onclick={() => { onOpenChart(chart.id); searchQuery = '' }}
+          >{chart.name}</span>
+        </li>
+      {/each}
+    {:else}
     {#each projects as project (project.id)}
       {@const isExpanded = project.id === currentProjectId}
       <li class="border-l-[3px] border-l-transparent">
@@ -100,6 +140,7 @@
         {/if}
       </li>
     {/each}
+    {/if}
   </ul>
 
   <div class="shrink-0">
