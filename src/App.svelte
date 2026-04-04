@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { onAuthReady, signOut } from './auth.js'
-  import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart } from './storage.js'
+  import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart, migrateFlatCharts } from './storage.js'
   import { initMermaid } from './preview.js'
   import SignIn from './lib/SignIn.svelte'
   import Landing from './lib/Landing.svelte'
@@ -25,6 +25,7 @@
   let editorCode = $state(DEFAULT_CODE)
   let shareCode = $state(null)
   let copyLinkLabel = $state('Copy link')
+  let recentCharts = $state([])
 
   let currentChart = $derived(charts.find((c) => c.id === currentChartId) ?? null)
   let currentProject = $derived(projects.find((p) => p.id === currentProjectId) ?? null)
@@ -32,6 +33,7 @@
   let projectsUnsubscribe = null
   let chartsUnsubscribe = null
   let saveDebounce = null
+  let pendingChartId = null
 
   initMermaid()
 
@@ -57,6 +59,7 @@
       }
       currentUser = user
       authError = ''
+      migrateFlatCharts(user.uid).catch(console.error)
       projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
         projects = updated
       })
@@ -85,7 +88,12 @@
       charts = []
       chartsUnsubscribe = subscribeCharts(currentUser.uid, id, (updated) => {
         charts = updated
-        if (!currentChartId && charts.length > 0) openChart(charts[0].id)
+        if (pendingChartId) {
+          const target = charts.find((c) => c.id === pendingChartId)
+          if (target) { pendingChartId = null; openChart(target.id) }
+        } else if (!currentChartId && charts.length > 0) {
+          openChart(charts[0].id)
+        }
       })
     }
   }
@@ -113,6 +121,18 @@
     if (!chart) return
     currentChartId = id
     editorCode = chart.code || DEFAULT_CODE
+    const project = projects.find((p) => p.id === currentProjectId)
+    const entry = { chartId: id, projectId: currentProjectId, chartName: chart.name, projectName: project?.name ?? '' }
+    recentCharts = [entry, ...recentCharts.filter((r) => r.chartId !== id)].slice(0, 6)
+  }
+
+  function openRecentChart(projectId, chartId) {
+    if (currentProjectId === projectId) {
+      openChart(chartId)
+    } else {
+      pendingChartId = chartId
+      toggleProject(projectId)
+    }
   }
 
   function handleEditorChange(code) {
@@ -227,8 +247,10 @@
       {#if !currentProjectId}
         <Landing
           {projects}
+          {recentCharts}
           onSelectProject={toggleProject}
           onNewProject={handleNewProject}
+          onOpenRecentChart={openRecentChart}
         />
       {:else}
         <div class="flex flex-1 overflow-hidden">
