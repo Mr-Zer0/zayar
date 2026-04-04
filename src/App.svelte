@@ -177,37 +177,40 @@
   </div>
 {:else if !currentUser}
   <SignIn error={authError} />
-{:else if !currentProjectId}
-  <Landing
-    {projects}
-    onSelectProject={toggleProject}
-    onNewProject={handleNewProject}
-    onSignOut={signOut}
-  />
 {:else}
   <div class="flex flex-col h-screen">
+    <!-- Top bar -->
     <div class="h-12 bg-white border-b border-slate-200 flex items-center px-4 gap-3 shrink-0">
-      <button
-        class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium"
-        onclick={() => toggleProject(currentProjectId)}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-        </svg>
-        Projects
-      </button>
-      <span class="text-slate-300">/</span>
-      <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentProject?.name ?? ''}</span>
-      <div class="flex gap-2">
-        <button onclick={handleCopyLink}>{copyLinkLabel}</button>
+      {#if currentProjectId}
+        <button
+          class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium"
+          onclick={() => toggleProject(currentProjectId)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          Projects
+        </button>
+        <span class="text-slate-300">/</span>
+        <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentProject?.name ?? ''}</span>
+        <div class="flex gap-2">
+          <button onclick={handleCopyLink}>{copyLinkLabel}</button>
+          <button
+            class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+            onclick={handleNewChart}
+          >+ New chart</button>
+        </div>
+      {:else}
+        <span class="text-lg font-bold text-blue-600 flex-1">FlowDraft</span>
         <button
           class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-          onclick={handleNewChart}
-        >+ New chart</button>
-      </div>
+          onclick={handleNewProject}
+        >+ New project</button>
+      {/if}
     </div>
 
-    <div class="grid grid-cols-[260px_1fr_1fr] flex-1 overflow-hidden">
+    <!-- Body: sidebar always visible + swappable main content -->
+    <div class="flex flex-1 overflow-hidden">
       <Sidebar
         {projects}
         {charts}
@@ -223,16 +226,23 @@
         onSignOut={signOut}
       />
 
-      <Preview
-        code={editorCode}
-        theme={currentChart?.theme || 'default'}
-        onThemeSwitch={handleThemeSwitch}
-      />
-
-      <Editor
-        code={editorCode}
-        onchange={handleEditorChange}
-      />
+      {#if !currentProjectId}
+        <Landing
+          {projects}
+          onSelectProject={toggleProject}
+          onNewProject={handleNewProject}
+        />
+      {:else}
+        <Preview
+          code={editorCode}
+          theme={currentChart?.theme || 'default'}
+          onThemeSwitch={handleThemeSwitch}
+        />
+        <Editor
+          code={editorCode}
+          onchange={handleEditorChange}
+        />
+      {/if}
     </div>
   </div>
 {/if}
