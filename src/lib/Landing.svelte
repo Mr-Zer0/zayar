@@ -11,7 +11,7 @@
   }
 </script>
 
-<div class="flex-1 overflow-auto p-8 bg-slate-50">
+<div class="flex-1 overflow-auto p-8">
   <h1 class="text-2xl font-bold text-slate-800 mb-6">Your projects</h1>
 
   {#if projects.length === 0}

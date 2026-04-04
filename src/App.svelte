@@ -198,7 +198,7 @@
 
     <!-- Main column: topbar + content -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <div class="h-12 bg-white border-b border-slate-200 flex items-center px-4 gap-3 shrink-0">
+      <div class="h-16 flex items-center px-4 gap-3 shrink-0">
         {#if currentProjectId}
           <button
             class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium"
@@ -219,11 +219,7 @@
             >+ New chart</button>
           </div>
         {:else}
-          <div class="flex-1"></div>
-          <button
-            class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-            onclick={handleNewProject}
-          >+ New project</button>
+          <span class="text-xl font-semibold text-slate-800 flex-1">Home</span>
         {/if}
       </div>
 
