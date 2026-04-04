@@ -3,6 +3,7 @@ import {
   doc,
   setDoc,
   deleteDoc,
+  getDocs,
   onSnapshot,
   query,
   orderBy,
@@ -54,4 +55,32 @@ export async function saveChart(uid, projectId, chart) {
 
 export async function deleteChart(uid, projectId, chartId) {
   await deleteDoc(doc(chartsRef(uid, projectId), chartId))
+}
+
+// ── Migration ─────────────────────────────────────────────────────────────────
+
+// Moves legacy flat charts (users/{uid}/charts/{chartId}) into a
+// "My Charts" project under the nested structure, then deletes the originals.
+export async function migrateFlatCharts(uid) {
+  const flatRef = collection(db, 'users', uid, 'charts')
+  const snap = await getDocs(flatRef)
+  if (snap.empty) return
+
+  const projectId = crypto.randomUUID()
+  await setDoc(doc(projectsRef(uid), projectId), {
+    id: projectId,
+    name: 'My Charts',
+    description: '',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  for (const d of snap.docs) {
+    const chart = { id: d.id, ...d.data() }
+    await setDoc(doc(chartsRef(uid, projectId), chart.id), {
+      ...chart,
+      updatedAt: serverTimestamp(),
+    })
+    await deleteDoc(d.ref)
+  }
 }
