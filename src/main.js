@@ -47,7 +47,7 @@ function boot() {
     clearChartsSubscription()
     if (!user) { currentUser = null; return }
     currentUser = user
-    document.getElementById('user-name').textContent = user.displayName || user.email
+    // document.getElementById('user-name').textContent = user.displayName || user.email
     projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
       projects = updated
       renderSidebar()
@@ -114,7 +114,7 @@ function renderSidebar() {
 
     return `
       <li class="border-l-[3px] border-l-transparent" data-id="${p.id}">
-        <div class="project-header flex items-center px-3 py-2 cursor-pointer gap-1.5 hover:bg-slate-100" data-id="${p.id}">
+        <div class="project-header flex items-center px-5 py-2 cursor-pointer gap-1.5 hover:bg-slate-100" data-id="${p.id}">
           <span class="project-toggle text-[10px] text-gray-500 shrink-0 w-3">${toggle}</span>
           <span class="project-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold" data-id="${p.id}">${escapeHtml(p.name)}</span>
           <button class="project-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500" data-id="${p.id}" title="Delete project">×</button>
