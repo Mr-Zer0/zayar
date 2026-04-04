@@ -194,6 +194,7 @@
       onRenameChart={(id, name) => handleRename(charts, id, name, (item) => saveChart(currentUser.uid, currentProjectId, item))}
       onSignOut={signOut}
       onGoHome={() => { if (currentProjectId) toggleProject(currentProjectId) }}
+      onNewProject={handleNewProject}
     />
 
     <!-- Main column: topbar + content -->

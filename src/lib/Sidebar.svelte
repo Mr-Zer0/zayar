@@ -13,6 +13,7 @@
     onRenameChart,
     onSignOut,
     onGoHome,
+    onNewProject,
   } = $props()
 
   let searchQuery = $state('')
@@ -68,13 +69,22 @@
   <!-- Home nav item -->
   <div class="shrink-0">
     <button
-      class="flex items-center gap-3.5 w-full px-5 py-3 cursor-pointer text-slate-600 hover:bg-slate-50"
+      class="flex items-center gap-3.5 w-full mt-8 px-5 py-3 cursor-pointer text-slate-600 hover:bg-slate-50"
       onclick={onGoHome}
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
       </svg>
       Home
+    </button>
+    <button
+      class="flex items-center gap-3.5 w-full mt-8 px-5 py-3 cursor-pointer text-slate-600 hover:bg-slate-50"
+      onclick={onNewProject}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Add Project
     </button>
   </div>
 
@@ -84,11 +94,11 @@
         <li class="px-5 py-3 text-sm text-slate-400">No charts found</li>
       {/if}
       {#each filteredCharts as chart (chart.id)}
-        <li class="chart-item flex items-center py-1.5 pl-5 pr-3 cursor-pointer gap-1.5 hover:bg-slate-100 border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
-          <span
-            class="chart-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px]"
+        <li class="chart-item border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
+          <button
+            class="chart-name flex items-center w-full py-1.5 pl-5 pr-3 gap-1.5 hover:bg-slate-100 cursor-pointer text-left overflow-hidden text-ellipsis whitespace-nowrap text-[13px]"
             onclick={() => { onOpenChart(chart.id); searchQuery = '' }}
-          >{chart.name}</span>
+          >{chart.name}</button>
         </li>
       {/each}
     {:else}
@@ -97,18 +107,26 @@
       <li class="border-l-[3px] border-l-transparent">
         <div
           class="project-header flex items-center px-5 py-2 cursor-pointer gap-1.5 hover:bg-slate-100"
+          role="button"
+          tabindex="0"
           onclick={(e) => {
             if (e.target.classList.contains('project-delete-btn')) return
             onToggleProject(project.id)
+          }}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onToggleProject(project.id)
           }}
         >
           <span class="text-[10px] text-gray-500 shrink-0 w-3">{isExpanded ? '▼' : '▶'}</span>
           <span
             class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold"
+            role="button"
+            tabindex="0"
             ondblclick={(e) => {
               e.stopPropagation()
               handleRename(project, e.currentTarget, 'Untitled project', (name) => onRenameProject(project.id, name))
             }}
+            onkeydown={(e) => { if (e.key === 'Enter') e.currentTarget.dispatchEvent(new MouseEvent('dblclick')) }}
           >{project.name}</span>
           <button
             class="project-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500"
@@ -121,11 +139,11 @@
           <ul class="list-none">
             {#each charts as chart (chart.id)}
               <li class="chart-item flex items-center py-1.5 pl-7 pr-3 cursor-pointer gap-1.5 hover:bg-slate-100 border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
-                <span
-                  class="chart-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px]"
+                <button
+                  class="chart-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-left"
                   onclick={() => onOpenChart(chart.id)}
                   ondblclick={(e) => handleRename(chart, e.currentTarget, 'Untitled chart', (name) => onRenameChart(chart.id, name))}
-                >{chart.name}</span>
+                >{chart.name}</button>
                 <button
                   class="chart-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500"
                   onclick={() => onDeleteChart(chart.id)}
