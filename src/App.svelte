@@ -4,6 +4,7 @@
   import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart } from './storage.js'
   import { initMermaid } from './preview.js'
   import SignIn from './lib/SignIn.svelte'
+  import Landing from './lib/Landing.svelte'
   import Sidebar from './lib/Sidebar.svelte'
   import Preview from './lib/Preview.svelte'
   import Editor from './lib/Editor.svelte'
@@ -26,6 +27,7 @@
   let copyLinkLabel = $state('Copy link')
 
   let currentChart = $derived(charts.find((c) => c.id === currentChartId) ?? null)
+  let currentProject = $derived(projects.find((p) => p.id === currentProjectId) ?? null)
 
   let projectsUnsubscribe = null
   let chartsUnsubscribe = null
@@ -175,16 +177,33 @@
   </div>
 {:else if !currentUser}
   <SignIn error={authError} />
+{:else if !currentProjectId}
+  <Landing
+    {projects}
+    onSelectProject={toggleProject}
+    onNewProject={handleNewProject}
+    onSignOut={signOut}
+  />
 {:else}
   <div class="flex flex-col h-screen">
     <div class="h-12 bg-white border-b border-slate-200 flex items-center px-4 gap-3 shrink-0">
-      <span class="text-lg font-bold text-blue-600 flex-1">FlowDraft</span>
+      <button
+        class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium"
+        onclick={() => toggleProject(currentProjectId)}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+        Projects
+      </button>
+      <span class="text-slate-300">/</span>
+      <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentProject?.name ?? ''}</span>
       <div class="flex gap-2">
         <button onclick={handleCopyLink}>{copyLinkLabel}</button>
         <button
           class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-          onclick={handleNewProject}
-        >+ New project</button>
+          onclick={handleNewChart}
+        >+ New chart</button>
       </div>
     </div>
 
