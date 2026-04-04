@@ -168,7 +168,7 @@
 {:else if shareCode !== null}
   <div class="flex flex-col h-screen">
     <div class="h-12 bg-white border-b border-slate-200 flex items-center px-4 gap-3 shrink-0">
-      <span class="text-lg font-bold text-blue-600 flex-1">FlowDraft</span>
+      <span class="text-lg font-bold text-blue-600 flex-1">Zayar</span>
       <span class="text-xs text-gray-500 bg-slate-100 px-2.5 py-0.5 rounded-full">Read-only preview</span>
     </div>
     <div class="flex-1 flex flex-col bg-white overflow-auto">
@@ -218,7 +218,7 @@
             >+ New chart</button>
           </div>
         {:else}
-          <span class="text-lg font-bold text-blue-600 flex-1">FlowDraft</span>
+          <span class="text-lg font-bold text-blue-600 flex-1">Zayar</span>
           <button
             class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
             onclick={handleNewProject}
