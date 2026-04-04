@@ -105,21 +105,9 @@
     {#each projects as project (project.id)}
       {@const isExpanded = project.id === currentProjectId}
       <li class="border-l-[3px] border-l-transparent">
-        <div
-          class="project-header flex items-center px-5 py-2 cursor-pointer gap-1.5 hover:bg-slate-100"
-          role="button"
-          tabindex="0"
-          onclick={(e) => {
-            if (e.target.classList.contains('project-delete-btn')) return
-            onToggleProject(project.id)
-          }}
-          onkeydown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') onToggleProject(project.id)
-          }}
-        >
-          <span class="text-[10px] text-gray-500 shrink-0 w-3">{isExpanded ? '▼' : '▶'}</span>
+        <div class="project-header flex items-center px-5 py-2 gap-1.5 hover:bg-slate-100">
           <span
-            class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold"
+            class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold cursor-default"
             role="button"
             tabindex="0"
             ondblclick={(e) => {
@@ -129,10 +117,15 @@
             onkeydown={(e) => { if (e.key === 'Enter') e.currentTarget.dispatchEvent(new MouseEvent('dblclick')) }}
           >{project.name}</span>
           <button
-            class="project-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500"
-            onclick={(e) => { e.stopPropagation(); onDeleteProject(project.id) }}
-            title="Delete project"
-          >×</button>
+            class="shrink-0 text-slate-400 hover:text-slate-600 cursor-pointer"
+            onclick={() => onToggleProject(project.id)}
+            title={isExpanded ? 'Collapse' : 'Expand'}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+              class="size-4 transition-transform duration-200 {isExpanded ? '-rotate-90' : ''}">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
         </div>
 
         {#if isExpanded}
