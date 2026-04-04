@@ -4,13 +4,11 @@
 
   let { code, onchange = () => {} } = $props()
 
-  let container = $state(null)
+  let container = null
   let editorView = null
 
   onMount(() => {
-    editorView = createEditor(container, code, (newCode) => {
-      onchange(newCode)
-    })
+    editorView = createEditor(container, code, onchange)
   })
 
   onDestroy(() => {

@@ -3,16 +3,17 @@
 
   let { code, theme = 'default', readonly = false, onThemeSwitch = () => {} } = $props()
 
-  let containerEl = $state(null)
+  let containerEl = null
   let svgHtml = $state('')
   let error = $state('')
+  let prevTheme = theme
 
   $effect(() => {
-    const c = code
-    const t = theme
-    const delay = readonly ? 0 : 300
+    const isThemeChange = theme !== prevTheme
+    prevTheme = theme
+    const delay = (isThemeChange || readonly) ? 0 : 300
     const timeout = setTimeout(async () => {
-      const result = await renderMermaid(c, t)
+      const result = await renderMermaid(code, theme)
       if (result.svg) {
         svgHtml = result.svg
         error = ''

@@ -64,6 +64,7 @@
   onDestroy(() => {
     if (projectsUnsubscribe) projectsUnsubscribe()
     clearChartsSubscription()
+    clearTimeout(saveDebounce)
   })
 
   function clearChartsSubscription() {
@@ -125,31 +126,23 @@
     if (!currentUser || !currentProjectId) return
     const chart = { id: crypto.randomUUID(), name: 'Untitled chart', code: DEFAULT_CODE, theme: 'default', createdAt: null, updatedAt: null }
     await saveChart(currentUser.uid, currentProjectId, chart)
-    currentChartId = chart.id
-    editorCode = chart.code
+    openChart(chart.id)
   }
 
   async function handleDeleteChart(id) {
     if (!currentUser || !currentProjectId || !confirm('Delete this chart?')) return
     await deleteChart(currentUser.uid, currentProjectId, id)
     if (currentChartId === id) {
-      currentChartId = null
       const next = charts.find((c) => c.id !== id)
       if (next) openChart(next.id)
-      else editorCode = DEFAULT_CODE
+      else { currentChartId = null; editorCode = DEFAULT_CODE }
     }
   }
 
-  async function handleRenameProject(id, name) {
-    const project = projects.find((p) => p.id === id)
-    if (!project) return
-    await saveProject(currentUser.uid, { ...project, name })
-  }
-
-  async function handleRenameChart(id, name) {
-    const chart = charts.find((c) => c.id === id)
-    if (!chart) return
-    await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
+  async function handleRename(items, id, name, save) {
+    const item = items.find((i) => i.id === id)
+    if (!item) return
+    await save({ ...item, name })
   }
 
   async function handleThemeSwitch(theme) {
@@ -206,8 +199,8 @@
         onDeleteChart={handleDeleteChart}
         onDeleteProject={handleDeleteProject}
         onOpenChart={openChart}
-        onRenameProject={handleRenameProject}
-        onRenameChart={handleRenameChart}
+        onRenameProject={(id, name) => handleRename(projects, id, name, (item) => saveProject(currentUser.uid, item))}
+        onRenameChart={(id, name) => handleRename(charts, id, name, (item) => saveChart(currentUser.uid, currentProjectId, item))}
         onSignOut={signOut}
       />
 
