@@ -33,6 +33,11 @@
 </script>
 
 <aside class="bg-white border-r border-slate-200 flex flex-col overflow-hidden">
+  <!-- App name -->
+  <div class="shrink-0 px-5 h-12 flex items-center border-b border-slate-200">
+    <span class="text-lg font-bold text-blue-600">Zayar</span>
+  </div>
+
   <!-- Home nav item -->
   <div class="shrink-0 border-b border-slate-200">
     <button

@@ -219,7 +219,7 @@
             >+ New chart</button>
           </div>
         {:else}
-          <span class="text-lg font-bold text-blue-600 flex-1">Zayar</span>
+          <div class="flex-1"></div>
           <button
             class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
             onclick={handleNewProject}
