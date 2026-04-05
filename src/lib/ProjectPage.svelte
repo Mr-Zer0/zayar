@@ -45,16 +45,22 @@
   <!-- Project header -->
   <div class="flex items-start justify-between gap-4 mb-8">
     <div class="flex-1 min-w-0">
-      <h1
+      <div
         class="text-2xl font-bold text-slate-800 cursor-text rounded px-1 -mx-1 hover:bg-slate-200/60 transition-colors outline-none"
+        role="button"
+        tabindex="0"
         title="Click to edit name"
         onclick={(e) => editField(e.currentTarget, project.name, (name) => onUpdateProject({ ...project, name }))}
-      >{project.name}</h1>
-      <p
+        onkeydown={(e) => { if (e.key === 'Enter') editField(e.currentTarget, project.name, (name) => onUpdateProject({ ...project, name })) }}
+      >{project.name}</div>
+      <div
         class="mt-1 text-sm text-slate-500 cursor-text rounded px-1 -mx-1 hover:bg-slate-200/60 transition-colors outline-none min-h-[1.5rem]"
+        role="button"
+        tabindex="0"
         title="Click to edit description"
         onclick={(e) => editField(e.currentTarget, project.description || '', (description) => onUpdateProject({ ...project, description }))}
-      >{project.description || 'Add a description...'}</p>
+        onkeydown={(e) => { if (e.key === 'Enter') editField(e.currentTarget, project.description || '', (description) => onUpdateProject({ ...project, description })) }}
+      >{project.description || 'Add a description...'}</div>
     </div>
     <button
       class="shrink-0 flex items-center gap-1.5 text-sm text-slate-400 hover:text-red-500 transition-colors"
@@ -117,8 +123,18 @@
 
 {#if showDeleteConfirm}
   <!-- Confirmation modal -->
-  <div use:portal class="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onclick={() => showDeleteConfirm = false}>
-    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4" onclick={(e) => e.stopPropagation()}>
+  <div use:portal class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+    role="presentation"
+    onclick={() => showDeleteConfirm = false}
+    onkeydown={(e) => { if (e.key === 'Escape') showDeleteConfirm = false }}
+  >
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+    >
       <div class="flex items-center gap-3 mb-4">
         <div class="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-red-600">

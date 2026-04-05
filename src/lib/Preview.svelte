@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import { renderMermaid, exportSVG, exportPNG } from '../preview.js'
 
   let { code, theme = 'default', readonly = false, onThemeSwitch = () => {} } = $props()
@@ -6,7 +7,7 @@
   let containerEl = null
   let svgHtml = $state('')
   let error = $state('')
-  let prevTheme = theme
+  let prevTheme = untrack(() => theme)
 
   $effect(() => {
     const isThemeChange = theme !== prevTheme
