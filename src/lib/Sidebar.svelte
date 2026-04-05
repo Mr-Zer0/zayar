@@ -43,15 +43,14 @@
   <!-- Projects label + add button -->
   <div class="shrink-0 flex items-center justify-between px-5 pt-8 pb-2">
     <span class="font-semibold text-slate-700 tracking-wide">Projects</span>
-    <button 
-      onclick={onNewProject} 
+    <button
+      onclick={onNewProject}
       class="text-white bg-rose-500 rounded-md transition-colors cursor-pointer flex items-center gap-1 px-2 py-1 text-sm"
       title="Add project"
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
-
       New
     </button>
   </div>
@@ -83,7 +82,7 @@
     {#each filteredProjects as project (project.id)}
       <li>
         <button
-          class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal' }"
+          class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal'}"
           onclick={() => onSelectProject(project.id)}
         >
           {project.name}
@@ -92,6 +91,7 @@
     {/each}
   </ul>
 
+  <!-- Logout -->
   <div class="shrink-0">
     <button
       class="flex items-center gap-3 px-6 py-3 mb-3 text-slate-700 font-semibold"

@@ -1,5 +1,5 @@
 <script>
-  let { project, charts, onNewChart, onOpenChart, onDeleteChart, onDeleteProject, onRenameChart } = $props()
+  let { project, charts, onNewChart, onOpenChart, onDeleteChart, onDeleteProject, onUpdateProject } = $props()
 
   function formatDate(timestamp) {
     if (!timestamp) return null
@@ -9,16 +9,45 @@
       return null
     }
   }
+
+  function editField(el, fallback, onSave) {
+    el.contentEditable = 'true'
+    el.focus()
+    // move cursor to end
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    range.collapse(false)
+    window.getSelection().removeAllRanges()
+    window.getSelection().addRange(range)
+
+    const finish = () => {
+      el.contentEditable = 'false'
+      const value = el.textContent.trim() || fallback
+      el.textContent = value
+      onSave(value)
+    }
+    el.addEventListener('blur', finish, { once: true })
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur() }
+      if (e.key === 'Escape') { el.textContent = fallback; el.blur() }
+    }, { once: true })
+  }
 </script>
 
 <div class="flex-1 overflow-auto p-8 bg-slate-50">
   <!-- Project header -->
   <div class="flex items-start justify-between gap-4 mb-8">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-800">{project.name}</h1>
-      {#if project.description}
-        <p class="text-slate-500 mt-1 text-sm">{project.description}</p>
-      {/if}
+    <div class="flex-1 min-w-0">
+      <h1
+        class="text-2xl font-bold text-slate-800 cursor-text rounded px-1 -mx-1 hover:bg-slate-200/60 transition-colors outline-none"
+        title="Click to edit name"
+        onclick={(e) => editField(e.currentTarget, project.name, (name) => onUpdateProject({ ...project, name }))}
+      >{project.name}</h1>
+      <p
+        class="mt-1 text-sm text-slate-500 cursor-text rounded px-1 -mx-1 hover:bg-slate-200/60 transition-colors outline-none min-h-[1.5rem]"
+        title="Click to edit description"
+        onclick={(e) => editField(e.currentTarget, project.description || '', (description) => onUpdateProject({ ...project, description }))}
+      >{project.description || 'Add a description...'}</p>
     </div>
     <button
       class="shrink-0 text-sm text-red-500 hover:text-red-600 font-medium"

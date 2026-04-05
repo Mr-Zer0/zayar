@@ -219,7 +219,7 @@
           onOpenChart={openChart}
           onDeleteChart={handleDeleteChart}
           onDeleteProject={handleDeleteProject}
-          onRenameChart={handleRenameChart}
+          onUpdateProject={(p) => saveProject(currentUser.uid, p).catch(console.error)}
         />
       {:else}
         <div class="flex flex-1 overflow-hidden">
