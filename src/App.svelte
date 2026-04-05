@@ -25,7 +25,7 @@
   let charts = $state([])
   let editorCode = $state(DEFAULT_CODE)
   let shareCode = $state(null)
-  let copyLinkLabel = $state('Copy link')
+
   let recentCharts = $state([])
 
   let currentChart = $derived(charts.find((c) => c.id === currentChartId) ?? null)
@@ -170,15 +170,7 @@
     saveChart(currentUser.uid, currentProjectId, { ...currentChart, theme }).catch(console.error)
   }
 
-  function handleCopyLink() {
-    if (!currentChart) return
-    const hash = btoa(encodeURIComponent(currentChart.code))
-    const url = `${window.location.origin}${window.location.pathname}#${hash}`
-    navigator.clipboard.writeText(url).then(() => {
-      copyLinkLabel = 'Copied!'
-      setTimeout(() => { copyLinkLabel = 'Copy link' }, 2000)
-    })
-  }
+
 </script>
 
 {#if loading}
@@ -210,44 +202,6 @@
 
     <!-- Main column -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <!-- Topbar -->
-      <div class="h-16 bg-white border-b border-slate-200 flex items-center px-4 gap-2 shrink-0">
-        {#if currentChartId}
-          <button
-            class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium shrink-0"
-            onclick={() => currentChartId = null}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-            {currentProject?.name ?? 'Project'}
-          </button>
-          <span class="text-slate-300">/</span>
-          <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentChart?.name ?? ''}</span>
-          <div class="flex gap-2 shrink-0">
-            <button onclick={handleCopyLink}>{copyLinkLabel}</button>
-            <button
-              class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-              onclick={handleNewChart}
-            >+ New chart</button>
-          </div>
-        {:else if currentProjectId}
-          <button
-            class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium shrink-0"
-            onclick={goHome}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-            Home
-          </button>
-          <span class="text-slate-300">/</span>
-          <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentProject?.name ?? ''}</span>
-        {:else}
-          <span class="text-xl font-semibold text-slate-800 flex-1">Home</span>
-        {/if}
-      </div>
-
       <!-- Content -->
       {#if !currentProjectId}
         <Landing
