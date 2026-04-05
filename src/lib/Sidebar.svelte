@@ -1,4 +1,6 @@
 <script>
+  import { slide } from 'svelte/transition'
+
   let {
     projects,
     charts,
@@ -129,7 +131,7 @@
         </div>
 
         {#if isExpanded}
-          <ul class="list-none">
+          <ul class="list-none" transition:slide={{ duration: 200 }}>
             {#each charts as chart (chart.id)}
               <li class="chart-item flex items-center py-1.5 pl-7 pr-3 cursor-pointer gap-1.5 hover:bg-slate-100 border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
                 <button
