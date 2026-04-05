@@ -18,24 +18,25 @@
   function editField(el, fallback, onSave) {
     el.contentEditable = 'true'
     el.focus()
-    // move cursor to end
     const range = document.createRange()
     range.selectNodeContents(el)
     range.collapse(false)
     window.getSelection().removeAllRanges()
     window.getSelection().addRange(range)
 
+    const onKeyDown = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur() }
+      if (e.key === 'Escape') { el.textContent = fallback; el.blur() }
+    }
     const finish = () => {
       el.contentEditable = 'false'
+      el.removeEventListener('keydown', onKeyDown)
       const value = el.textContent.trim() || fallback
       el.textContent = value
       onSave(value)
     }
     el.addEventListener('blur', finish, { once: true })
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); el.blur() }
-      if (e.key === 'Escape') { el.textContent = fallback; el.blur() }
-    }, { once: true })
+    el.addEventListener('keydown', onKeyDown)
   }
 </script>
 

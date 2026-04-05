@@ -19,6 +19,12 @@ function chartsRef(uid, projectId) {
   return collection(db, 'users', uid, 'projects', projectId, 'charts')
 }
 
+function withTimestamps(data) {
+  const result = { ...data, updatedAt: serverTimestamp() }
+  if (!result.createdAt) result.createdAt = serverTimestamp()
+  return result
+}
+
 // ── Projects ──────────────────────────────────────────────────────────────────
 
 export function subscribeProjects(uid, onChange) {
@@ -30,10 +36,7 @@ export function subscribeProjects(uid, onChange) {
 }
 
 export async function saveProject(uid, project) {
-  const ref = doc(projectsRef(uid), project.id)
-  const data = { ...project, updatedAt: serverTimestamp() }
-  if (!data.createdAt) data.createdAt = serverTimestamp()
-  await setDoc(ref, data, { merge: true })
+  await setDoc(doc(projectsRef(uid), project.id), withTimestamps(project), { merge: true })
 }
 
 export async function deleteProject(uid, projectId) {
@@ -53,10 +56,7 @@ export function subscribeCharts(uid, projectId, onChange) {
 }
 
 export async function saveChart(uid, projectId, chart) {
-  const ref = doc(chartsRef(uid, projectId), chart.id)
-  const data = { ...chart, updatedAt: serverTimestamp() }
-  if (!data.createdAt) data.createdAt = serverTimestamp()
-  await setDoc(ref, data, { merge: true })
+  await setDoc(doc(chartsRef(uid, projectId), chart.id), withTimestamps(chart), { merge: true })
 }
 
 export async function deleteChart(uid, projectId, chartId) {
