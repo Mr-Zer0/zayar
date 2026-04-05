@@ -148,7 +148,7 @@
   }
 
   async function handleDeleteChart(id) {
-    if (!currentUser || !currentProjectId || !confirm('Delete this chart?')) return
+    if (!currentUser || !currentProjectId) return
     await deleteChart(currentUser.uid, currentProjectId, id)
     if (currentChartId === id) currentChartId = null
   }
