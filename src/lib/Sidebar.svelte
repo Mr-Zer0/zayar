@@ -1,37 +1,26 @@
 <script>
   let {
     projects,
+    allCharts,
     currentProjectId,
     onSelectProject,
-    onRenameProject,
+    onSelectChart,
     onSignOut,
     onGoHome,
     onNewProject,
   } = $props()
 
   let searchQuery = $state('')
+  let query = $derived(searchQuery.trim().toLowerCase())
 
   let filteredProjects = $derived(
-    searchQuery.trim()
-      ? projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      : projects
+    query ? projects.filter(p => p.name.toLowerCase().includes(query)) : projects
   )
 
-  function handleRename(item, el, defaultName, onSave) {
-    if (!item) return
-    el.contentEditable = 'true'
-    el.focus()
-    const finish = () => {
-      el.contentEditable = 'false'
-      const name = el.textContent.trim() || defaultName
-      el.textContent = name
-      onSave(name)
-    }
-    el.addEventListener('blur', finish, { once: true })
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); el.blur() }
-    }, { once: true })
-  }
+  let filteredCharts = $derived(
+    query ? allCharts.filter(c => c.name.toLowerCase().includes(query)) : []
+  )
+
 </script>
 
 <aside class="w-[260px] shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
@@ -60,7 +49,7 @@
     <div class="flex items-center gap-2 px-4 py-2 rounded-md bg-slate-100 border border-slate-200">
       <input
         type="text"
-        placeholder="Search projects..."
+        placeholder="Search..."
         bind:value={searchQuery}
         class="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none min-w-0"
       />
@@ -74,21 +63,48 @@
     </div>
   </div>
 
-  <!-- Project list -->
+  <!-- Project list / Search results -->
   <ul class="flex-1 overflow-y-auto py-2 list-none">
-    {#if filteredProjects.length === 0 && searchQuery}
-      <li class="px-5 py-3 text-sm text-slate-400">No projects found</li>
+    {#if query}
+      {#if filteredProjects.length === 0 && filteredCharts.length === 0}
+        <li class="px-5 py-3 text-sm text-slate-400">No results</li>
+      {/if}
+      {#if filteredProjects.length > 0}
+        <li class="px-5 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Projects</li>
+        {#each filteredProjects as project (project.id)}
+          <li>
+            <button
+              class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal'}"
+              onclick={() => onSelectProject(project.id)}
+            >{project.name}</button>
+          </li>
+        {/each}
+      {/if}
+      {#if filteredCharts.length > 0}
+        <li class="px-5 pt-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Charts</li>
+        {#each filteredCharts as chart (chart.id)}
+          {@const projectName = projects.find(p => p.id === chart.projectId)?.name ?? ''}
+          <li>
+            <button
+              class="flex flex-col w-full px-5 py-2 text-left hover:bg-slate-100 cursor-pointer transition-colors"
+              onclick={() => onSelectChart(chart.projectId, chart.id)}
+            >
+              <span class="text-sm text-slate-700 truncate">{chart.name}</span>
+              <span class="text-[11px] text-slate-400 truncate">{projectName}</span>
+            </button>
+          </li>
+        {/each}
+      {/if}
+    {:else}
+      {#each filteredProjects as project (project.id)}
+        <li>
+          <button
+            class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal'}"
+            onclick={() => onSelectProject(project.id)}
+          >{project.name}</button>
+        </li>
+      {/each}
     {/if}
-    {#each filteredProjects as project (project.id)}
-      <li>
-        <button
-          class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal'}"
-          onclick={() => onSelectProject(project.id)}
-        >
-          {project.name}
-        </button>
-      </li>
-    {/each}
   </ul>
 
   <!-- Logout -->

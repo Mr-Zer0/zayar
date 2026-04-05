@@ -31,10 +31,38 @@
   let currentChart = $derived(charts.find((c) => c.id === currentChartId) ?? null)
   let currentProject = $derived(projects.find((p) => p.id === currentProjectId) ?? null)
 
+  let allCharts = $state([])
+
   let projectsUnsubscribe = null
   let chartsUnsubscribe = null
+  let allChartsUnsubscribes = []
   let saveDebounce = null
   let pendingChartId = null
+
+  $effect(() => {
+    if (!currentUser) {
+      allChartsUnsubscribes.forEach(fn => fn())
+      allChartsUnsubscribes = []
+      allCharts = []
+      return
+    }
+    allChartsUnsubscribes.forEach(fn => fn())
+    allChartsUnsubscribes = []
+    // Plain Map (non-reactive) so callbacks never read $state, preventing loops
+    const chartsMap = new Map(projects.map(p => [p.id, []]))
+    for (const project of projects) {
+      const pid = project.id
+      const unsub = subscribeCharts(currentUser.uid, pid, (projectCharts) => {
+        chartsMap.set(pid, projectCharts.map(c => ({ ...c, projectId: pid })))
+        allCharts = [...chartsMap.values()].flat()
+      })
+      allChartsUnsubscribes.push(unsub)
+    }
+    return () => {
+      allChartsUnsubscribes.forEach(fn => fn())
+      allChartsUnsubscribes = []
+    }
+  })
 
   initMermaid()
 
@@ -70,6 +98,7 @@
   onDestroy(() => {
     if (projectsUnsubscribe) projectsUnsubscribe()
     clearChartsSubscription()
+    allChartsUnsubscribes.forEach(fn => fn())
     clearTimeout(saveDebounce)
   })
 
@@ -192,9 +221,10 @@
     <!-- Sidebar -->
     <Sidebar
       {projects}
+      {allCharts}
       {currentProjectId}
       onSelectProject={selectProject}
-      onRenameProject={handleRenameProject}
+      onSelectChart={openRecentChart}
       onSignOut={signOut}
       onGoHome={goHome}
       onNewProject={handleNewProject}
