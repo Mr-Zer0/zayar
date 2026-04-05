@@ -31,7 +31,9 @@ export function subscribeProjects(uid, onChange) {
 
 export async function saveProject(uid, project) {
   const ref = doc(projectsRef(uid), project.id)
-  await setDoc(ref, { ...project, updatedAt: serverTimestamp() }, { merge: true })
+  const data = { ...project, updatedAt: serverTimestamp() }
+  if (!data.createdAt) data.createdAt = serverTimestamp()
+  await setDoc(ref, data, { merge: true })
 }
 
 export async function deleteProject(uid, projectId) {
@@ -50,7 +52,9 @@ export function subscribeCharts(uid, projectId, onChange) {
 
 export async function saveChart(uid, projectId, chart) {
   const ref = doc(chartsRef(uid, projectId), chart.id)
-  await setDoc(ref, { ...chart, updatedAt: serverTimestamp() }, { merge: true })
+  const data = { ...chart, updatedAt: serverTimestamp() }
+  if (!data.createdAt) data.createdAt = serverTimestamp()
+  await setDoc(ref, data, { merge: true })
 }
 
 export async function deleteChart(uid, projectId, chartId) {
