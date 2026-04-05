@@ -107,7 +107,7 @@
   }
 
   async function handleDeleteProject(id) {
-    if (!currentUser || !confirm('Delete this project and all its charts?')) return
+    if (!currentUser) return
     if (currentProjectId === id) goHome()
     await deleteProject(currentUser.uid, id)
   }

@@ -37,6 +37,8 @@ export async function saveProject(uid, project) {
 }
 
 export async function deleteProject(uid, projectId) {
+  const snap = await getDocs(chartsRef(uid, projectId))
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)))
   await deleteDoc(doc(projectsRef(uid), projectId))
 }
 
