@@ -5,6 +5,7 @@
   import { initMermaid } from './preview.js'
   import SignIn from './lib/SignIn.svelte'
   import Landing from './lib/Landing.svelte'
+  import ProjectPage from './lib/ProjectPage.svelte'
   import Sidebar from './lib/Sidebar.svelte'
   import Preview from './lib/Preview.svelte'
   import Editor from './lib/Editor.svelte'
@@ -76,43 +77,38 @@
     if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
   }
 
-  function toggleProject(id) {
+  function goHome() {
     clearChartsSubscription()
-    if (currentProjectId === id) {
-      currentProjectId = null
-      currentChartId = null
-      charts = []
-    } else {
-      currentProjectId = id
-      currentChartId = null
-      charts = []
-      chartsUnsubscribe = subscribeCharts(currentUser.uid, id, (updated) => {
-        charts = updated
-        if (pendingChartId) {
-          const target = charts.find((c) => c.id === pendingChartId)
-          if (target) { pendingChartId = null; openChart(target.id) }
-        } else if (!currentChartId && charts.length > 0) {
-          openChart(charts[0].id)
-        }
-      })
-    }
+    currentProjectId = null
+    currentChartId = null
+    charts = []
+  }
+
+  function selectProject(id) {
+    if (currentProjectId === id && !currentChartId) return
+    clearChartsSubscription()
+    currentProjectId = id
+    currentChartId = null
+    charts = []
+    chartsUnsubscribe = subscribeCharts(currentUser.uid, id, (updated) => {
+      charts = updated
+      if (pendingChartId) {
+        const target = charts.find((c) => c.id === pendingChartId)
+        if (target) { pendingChartId = null; openChart(target.id) }
+      }
+    })
   }
 
   async function handleNewProject() {
     if (!currentUser) return
     const project = { id: crypto.randomUUID(), name: 'Untitled project', description: '', createdAt: null, updatedAt: null }
     await saveProject(currentUser.uid, project)
-    toggleProject(project.id)
+    selectProject(project.id)
   }
 
   async function handleDeleteProject(id) {
     if (!currentUser || !confirm('Delete this project and all its charts?')) return
-    if (currentProjectId === id) {
-      currentProjectId = null
-      currentChartId = null
-      charts = []
-      clearChartsSubscription()
-    }
+    if (currentProjectId === id) goHome()
     await deleteProject(currentUser.uid, id)
   }
 
@@ -131,7 +127,7 @@
       openChart(chartId)
     } else {
       pendingChartId = chartId
-      toggleProject(projectId)
+      selectProject(projectId)
     }
   }
 
@@ -154,17 +150,19 @@
   async function handleDeleteChart(id) {
     if (!currentUser || !currentProjectId || !confirm('Delete this chart?')) return
     await deleteChart(currentUser.uid, currentProjectId, id)
-    if (currentChartId === id) {
-      const next = charts.find((c) => c.id !== id)
-      if (next) openChart(next.id)
-      else { currentChartId = null; editorCode = DEFAULT_CODE }
-    }
+    if (currentChartId === id) currentChartId = null
   }
 
-  async function handleRename(items, id, name, save) {
-    const item = items.find((i) => i.id === id)
-    if (!item) return
-    await save({ ...item, name })
+  async function handleRenameProject(id, name) {
+    const project = projects.find((p) => p.id === id)
+    if (!project) return
+    await saveProject(currentUser.uid, { ...project, name })
+  }
+
+  async function handleRenameChart(id, name) {
+    const chart = charts.find((c) => c.id === id)
+    if (!chart) return
+    await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
   }
 
   async function handleThemeSwitch(theme) {
@@ -199,58 +197,75 @@
   <SignIn error={authError} />
 {:else}
   <div class="flex h-screen">
-    <!-- Sidebar: full height -->
+    <!-- Sidebar -->
     <Sidebar
       {projects}
-      {charts}
       {currentProjectId}
-      {currentChartId}
-      onToggleProject={toggleProject}
-      onNewChart={handleNewChart}
-      onDeleteChart={handleDeleteChart}
-      onDeleteProject={handleDeleteProject}
-      onOpenChart={openChart}
-      onRenameProject={(id, name) => handleRename(projects, id, name, (item) => saveProject(currentUser.uid, item))}
-      onRenameChart={(id, name) => handleRename(charts, id, name, (item) => saveChart(currentUser.uid, currentProjectId, item))}
+      onSelectProject={selectProject}
+      onRenameProject={handleRenameProject}
       onSignOut={signOut}
-      onGoHome={() => { if (currentProjectId) toggleProject(currentProjectId) }}
+      onGoHome={goHome}
       onNewProject={handleNewProject}
     />
 
-    <!-- Main column: topbar + content -->
+    <!-- Main column -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <div class="h-16 flex items-center px-4 gap-3 shrink-0">
-        {#if currentProjectId}
+      <!-- Topbar -->
+      <div class="h-16 bg-white border-b border-slate-200 flex items-center px-4 gap-2 shrink-0">
+        {#if currentChartId}
           <button
-            class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium"
-            onclick={() => toggleProject(currentProjectId)}
+            class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium shrink-0"
+            onclick={() => currentChartId = null}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
-            Projects
+            {currentProject?.name ?? 'Project'}
           </button>
           <span class="text-slate-300">/</span>
-          <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentProject?.name ?? ''}</span>
-          <div class="flex gap-2">
+          <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentChart?.name ?? ''}</span>
+          <div class="flex gap-2 shrink-0">
             <button onclick={handleCopyLink}>{copyLinkLabel}</button>
             <button
               class="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
               onclick={handleNewChart}
             >+ New chart</button>
           </div>
+        {:else if currentProjectId}
+          <button
+            class="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 text-sm font-medium shrink-0"
+            onclick={goHome}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+            Home
+          </button>
+          <span class="text-slate-300">/</span>
+          <span class="text-sm font-semibold text-slate-700 flex-1 truncate">{currentProject?.name ?? ''}</span>
         {:else}
           <span class="text-xl font-semibold text-slate-800 flex-1">Home</span>
         {/if}
       </div>
 
+      <!-- Content -->
       {#if !currentProjectId}
         <Landing
           {projects}
           {recentCharts}
-          onSelectProject={toggleProject}
+          onSelectProject={selectProject}
           onNewProject={handleNewProject}
           onOpenRecentChart={openRecentChart}
+        />
+      {:else if !currentChartId}
+        <ProjectPage
+          project={currentProject}
+          {charts}
+          onNewChart={handleNewChart}
+          onOpenChart={openChart}
+          onDeleteChart={handleDeleteChart}
+          onDeleteProject={handleDeleteProject}
+          onRenameChart={handleRenameChart}
         />
       {:else}
         <div class="flex flex-1 overflow-hidden">

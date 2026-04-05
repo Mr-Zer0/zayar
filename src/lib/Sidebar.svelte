@@ -1,18 +1,9 @@
 <script>
-  import { slide } from 'svelte/transition'
-
   let {
     projects,
-    charts,
     currentProjectId,
-    currentChartId,
-    onToggleProject,
-    onNewChart,
-    onDeleteChart,
-    onDeleteProject,
-    onOpenChart,
+    onSelectProject,
     onRenameProject,
-    onRenameChart,
     onSignOut,
     onGoHome,
     onNewProject,
@@ -20,10 +11,10 @@
 
   let searchQuery = $state('')
 
-  let filteredCharts = $derived(
+  let filteredProjects = $derived(
     searchQuery.trim()
-      ? charts.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      : null
+      ? projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : projects
   )
 
   function handleRename(item, el, defaultName, onSave) {
@@ -54,7 +45,7 @@
     <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200">
       <input
         type="text"
-        placeholder="Search charts..."
+        placeholder="Search projects..."
         bind:value={searchQuery}
         class="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none min-w-0"
       />
@@ -68,10 +59,10 @@
     </div>
   </div>
 
-  <!-- Home nav item -->
-  <div class="shrink-0">
+  <!-- Nav items -->
+  <div class="shrink-0 mt-8">
     <button
-      class="flex items-center gap-3.5 w-full mt-8 px-5 py-3 cursor-pointer text-slate-600 hover:bg-slate-50"
+      class="flex items-center gap-3.5 w-full px-5 py-3 text-slate-600 hover:bg-slate-50"
       onclick={onGoHome}
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
@@ -80,7 +71,7 @@
       Home
     </button>
     <button
-      class="flex items-center gap-3.5 w-full mt-8 px-5 py-3 cursor-pointer text-slate-600 hover:bg-slate-50"
+      class="flex items-center gap-3.5 w-full px-5 py-3 text-slate-600 hover:bg-slate-50"
       onclick={onNewProject}
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
@@ -90,75 +81,35 @@
     </button>
   </div>
 
-  <ul class="flex-1 overflow-y-auto py-2 list-none">
-    {#if filteredCharts}
-      {#if filteredCharts.length === 0}
-        <li class="px-5 py-3 text-sm text-slate-400">No charts found</li>
-      {/if}
-      {#each filteredCharts as chart (chart.id)}
-        <li class="chart-item border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
-          <button
-            class="chart-name flex items-center w-full py-1.5 pl-5 pr-3 gap-1.5 hover:bg-slate-100 cursor-pointer text-left overflow-hidden text-ellipsis whitespace-nowrap text-[13px]"
-            onclick={() => { onOpenChart(chart.id); searchQuery = '' }}
-          >{chart.name}</button>
-        </li>
-      {/each}
-    {:else}
-    {#each projects as project (project.id)}
-      {@const isExpanded = project.id === currentProjectId}
-      <li class="border-l-[3px] border-l-transparent">
-        <div class="project-header flex items-center px-5 py-2 gap-1.5 hover:bg-slate-100">
+  <!-- Project list -->
+  <ul class="flex-1 overflow-y-auto py-2 mt-2 list-none">
+    {#if filteredProjects.length === 0 && searchQuery}
+      <li class="px-5 py-3 text-sm text-slate-400">No projects found</li>
+    {/if}
+    {#each filteredProjects as project (project.id)}
+      <li class="border-l-[3px] {project.id === currentProjectId ? 'border-l-blue-500 bg-blue-50' : 'border-l-transparent'}">
+        <button
+          class="flex items-center w-full px-5 py-2.5 gap-2 hover:bg-slate-100 text-left"
+          onclick={() => onSelectProject(project.id)}
+        >
           <span
-            class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold cursor-default"
-            role="button"
-            tabindex="0"
+            class="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-medium {project.id === currentProjectId ? 'text-blue-700' : 'text-slate-700'}"
             ondblclick={(e) => {
               e.stopPropagation()
               handleRename(project, e.currentTarget, 'Untitled project', (name) => onRenameProject(project.id, name))
             }}
-            onkeydown={(e) => { if (e.key === 'Enter') e.currentTarget.dispatchEvent(new MouseEvent('dblclick')) }}
           >{project.name}</span>
-          <button
-            class="shrink-0 text-slate-400 hover:text-slate-600 cursor-pointer"
-            onclick={() => onToggleProject(project.id)}
-            title={isExpanded ? 'Collapse' : 'Expand'}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-              class="size-4 transition-transform duration-200 {isExpanded ? '-rotate-90' : ''}">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-        </div>
-
-        {#if isExpanded}
-          <ul class="list-none" transition:slide={{ duration: 200 }}>
-            {#each charts as chart (chart.id)}
-              <li class="chart-item flex items-center py-1.5 pl-7 pr-3 cursor-pointer gap-1.5 hover:bg-slate-100 border-l-[3px] border-l-transparent {chart.id === currentChartId ? 'active' : ''}">
-                <button
-                  class="chart-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-left"
-                  onclick={() => onOpenChart(chart.id)}
-                  ondblclick={(e) => handleRename(chart, e.currentTarget, 'Untitled chart', (name) => onRenameChart(chart.id, name))}
-                >{chart.name}</button>
-                <button
-                  class="chart-delete-btn text-gray-500 cursor-pointer text-base leading-none opacity-0 hover:text-red-500"
-                  onclick={() => onDeleteChart(chart.id)}
-                  title="Delete"
-                >×</button>
-              </li>
-            {/each}
-            <li class="py-1 pl-7 pr-3 pb-2">
-              <button class="new-chart-btn-inline text-blue-600 text-xs cursor-pointer rounded hover:bg-slate-100" onclick={onNewChart}>+ New chart</button>
-            </li>
-          </ul>
-        {/if}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 shrink-0 {project.id === currentProjectId ? 'text-blue-400' : 'text-slate-300'}">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
       </li>
     {/each}
-    {/if}
   </ul>
 
   <div class="shrink-0">
     <button
-      class="flex items-center gap-3 px-8 py-3 mb-3 cursor-pointer text-slate-700 font-semibold"
+      class="flex items-center gap-3 px-8 py-3 mb-3 text-slate-700 font-semibold"
       onclick={onSignOut}
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-slate-500">
