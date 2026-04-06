@@ -4,12 +4,11 @@
   import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart, migrateFlatCharts } from './storage.js'
   import { initMermaid } from './preview.js'
   import { parseRoute, navigate } from './router.js'
-  import SignIn from './lib/SignIn.svelte'
-  import Landing from './lib/Landing.svelte'
-  import ProjectPage from './lib/ProjectPage.svelte'
-  import Sidebar from './lib/Sidebar.svelte'
+  import LoginPage from './pages/LoginPage.svelte'
+  import LandingPage from './pages/LandingPage.svelte'
+  import ProjectPage from './pages/ProjectPage.svelte'
+  import ChartPage from './pages/ChartPage.svelte'
   import Preview from './lib/Preview.svelte'
-  import Editor from './lib/Editor.svelte'
 
   const DEFAULT_CODE = `flowchart TD
     A[Start] --> B{Is it working?}
@@ -265,51 +264,43 @@
     </div>
   </div>
 {:else if !currentUser}
-  <SignIn error={authError} />
+  <LoginPage error={authError} />
+{:else if currentChart}
+  <ChartPage
+    code={editorCode}
+    theme={currentChart.theme || 'default'}
+    onchange={handleEditorChange}
+    onThemeSwitch={handleThemeSwitch}
+  />
+{:else if currentProject}
+  <ProjectPage
+    {projects}
+    {allCharts}
+    {currentProjectId}
+    onGoHome={goHome}
+    onNewProject={handleNewProject}
+    onSelectProject={selectProject}
+    onSelectChart={openRecentChart}
+    onSignOut={signOut}
+    project={currentProject}
+    {charts}
+    onNewChart={handleNewChart}
+    onOpenChart={openChart}
+    onDeleteChart={handleDeleteChart}
+    onDeleteProject={handleDeleteProject}
+    onUpdateProject={(p) => saveProject(currentUser.uid, p).catch(console.error)}
+  />
 {:else}
-  <div class="flex h-screen">
-    <Sidebar
-      {projects}
-      {allCharts}
-      {currentProjectId}
-      onSelectProject={selectProject}
-      onSelectChart={openRecentChart}
-      onSignOut={signOut}
-      onGoHome={goHome}
-      onNewProject={handleNewProject}
-    />
-    <div class="flex flex-col flex-1 overflow-hidden">
-      {#if !currentProjectId}
-        <Landing
-          {projects}
-          {recentCharts}
-          onSelectProject={selectProject}
-          onNewProject={handleNewProject}
-          onOpenRecentChart={openRecentChart}
-        />
-      {:else if !currentChartId && currentProject}
-        <ProjectPage
-          project={currentProject}
-          {charts}
-          onNewChart={handleNewChart}
-          onOpenChart={openChart}
-          onDeleteChart={handleDeleteChart}
-          onDeleteProject={handleDeleteProject}
-          onUpdateProject={(p) => saveProject(currentUser.uid, p).catch(console.error)}
-        />
-      {:else if currentChart}
-        <div class="flex flex-1 overflow-hidden">
-          <Preview
-            code={editorCode}
-            theme={currentChart.theme || 'default'}
-            onThemeSwitch={handleThemeSwitch}
-          />
-          <Editor
-            code={editorCode}
-            onchange={handleEditorChange}
-          />
-        </div>
-      {/if}
-    </div>
-  </div>
+  <LandingPage
+    {projects}
+    {allCharts}
+    {currentProjectId}
+    {recentCharts}
+    onGoHome={goHome}
+    onNewProject={handleNewProject}
+    onSelectProject={selectProject}
+    onSelectChart={openRecentChart}
+    onSignOut={signOut}
+    onOpenRecentChart={openRecentChart}
+  />
 {/if}
