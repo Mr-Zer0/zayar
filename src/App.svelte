@@ -3,6 +3,7 @@
   import { onAuthReady, signOut } from './auth.js'
   import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart, migrateFlatCharts } from './storage.js'
   import { initMermaid } from './preview.js'
+  import { parseRoute, navigate } from './router.js'
   import SignIn from './lib/SignIn.svelte'
   import Landing from './lib/Landing.svelte'
   import ProjectPage from './lib/ProjectPage.svelte'
@@ -16,22 +17,26 @@
     B -- No --> D[Debug]
     D --> B`
 
+  // ── Reactive state ────────────────────────────────────────────────────────────
+
   let loading = $state(true)
   let currentUser = $state(null)
   let authError = $state('')
-  let currentProjectId = $state(null)
-  let currentChartId = $state(null)
+
   let projects = $state([])
   let charts = $state([])
+  let allCharts = $state([])
+
+  let currentProjectId = $state(null)
+  let currentChartId = $state(null)
   let editorCode = $state(DEFAULT_CODE)
   let shareCode = $state(null)
-
   let recentCharts = $state([])
 
   let currentChart = $derived(charts.find((c) => c.id === currentChartId) ?? null)
   let currentProject = $derived(projects.find((p) => p.id === currentProjectId) ?? null)
 
-  let allCharts = $state([])
+  // ── Internal refs (non-reactive) ──────────────────────────────────────────────
 
   let projectsUnsubscribe = null
   let chartsUnsubscribe = null
@@ -39,18 +44,11 @@
   let saveDebounce = null
   let pendingChartId = null
 
-  function parseRoute(pathname) {
-    const chartMatch = pathname.match(/^\/project\/([^/]+)\/chart\/([^/]+)$/)
-    if (chartMatch) return { projectId: chartMatch[1], chartId: chartMatch[2] }
-    const projectMatch = pathname.match(/^\/project\/([^/]+)$/)
-    if (projectMatch) return { projectId: projectMatch[1], chartId: null }
-    return { projectId: null, chartId: null }
-  }
+  // ── Subscriptions ─────────────────────────────────────────────────────────────
 
-  function navigate(path) {
-    if (window.location.pathname !== path) history.pushState(null, '', path)
-  }
-
+  // Subscribe to charts for every project so the sidebar search has all data.
+  // Uses a plain Map (non-reactive) so Firestore callbacks never read $state,
+  // preventing infinite update loops.
   $effect(() => {
     if (!currentUser) {
       allChartsUnsubscribes.forEach(fn => fn())
@@ -60,7 +58,6 @@
     }
     allChartsUnsubscribes.forEach(fn => fn())
     allChartsUnsubscribes = []
-    // Plain Map (non-reactive) so callbacks never read $state, preventing loops
     const chartsMap = new Map(projects.map(p => [p.id, []]))
     for (const project of projects) {
       const pid = project.id
@@ -76,9 +73,12 @@
     }
   })
 
-  initMermaid()
+  // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
   onMount(() => {
+    initMermaid()
+
+    // Share link via URL hash — no auth needed
     if (window.location.hash) {
       try {
         shareCode = decodeURIComponent(atob(window.location.hash.slice(1)))
@@ -142,9 +142,13 @@
     clearTimeout(saveDebounce)
   })
 
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
   function clearChartsSubscription() {
     if (chartsUnsubscribe) { chartsUnsubscribe(); chartsUnsubscribe = null }
   }
+
+  // ── Navigation ────────────────────────────────────────────────────────────────
 
   function goHome() {
     navigate('/')
@@ -170,19 +174,6 @@
     })
   }
 
-  async function handleNewProject() {
-    if (!currentUser) return
-    const project = { id: crypto.randomUUID(), name: 'Untitled project', description: '', createdAt: null, updatedAt: null }
-    await saveProject(currentUser.uid, project)
-    selectProject(project.id)
-  }
-
-  async function handleDeleteProject(id) {
-    if (!currentUser) return
-    if (currentProjectId === id) goHome()
-    await deleteProject(currentUser.uid, id)
-  }
-
   function openChart(id) {
     const chart = charts.find((c) => c.id === id)
     if (!chart) return
@@ -203,13 +194,19 @@
     }
   }
 
-  function handleEditorChange(code) {
-    editorCode = code
-    clearTimeout(saveDebounce)
-    saveDebounce = setTimeout(() => {
-      if (!currentUser || !currentProjectId || !currentChartId || !currentChart) return
-      saveChart(currentUser.uid, currentProjectId, { ...currentChart, code }).catch(console.error)
-    }, 1500)
+  // ── Event handlers ────────────────────────────────────────────────────────────
+
+  async function handleNewProject() {
+    if (!currentUser) return
+    const project = { id: crypto.randomUUID(), name: 'Untitled project', description: '', createdAt: null, updatedAt: null }
+    await saveProject(currentUser.uid, project)
+    selectProject(project.id)
+  }
+
+  async function handleDeleteProject(id) {
+    if (!currentUser) return
+    if (currentProjectId === id) goHome()
+    await deleteProject(currentUser.uid, id)
   }
 
   async function handleNewChart() {
@@ -245,7 +242,14 @@
     saveChart(currentUser.uid, currentProjectId, { ...currentChart, theme }).catch(console.error)
   }
 
-
+  function handleEditorChange(code) {
+    editorCode = code
+    clearTimeout(saveDebounce)
+    saveDebounce = setTimeout(() => {
+      if (!currentUser || !currentProjectId || !currentChartId || !currentChart) return
+      saveChart(currentUser.uid, currentProjectId, { ...currentChart, code }).catch(console.error)
+    }, 1500)
+  }
 </script>
 
 {#if loading}
@@ -264,7 +268,6 @@
   <SignIn error={authError} />
 {:else}
   <div class="flex h-screen">
-    <!-- Sidebar -->
     <Sidebar
       {projects}
       {allCharts}
@@ -275,10 +278,7 @@
       onGoHome={goHome}
       onNewProject={handleNewProject}
     />
-
-    <!-- Main column -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <!-- Content -->
       {#if !currentProjectId}
         <Landing
           {projects}
@@ -287,7 +287,7 @@
           onNewProject={handleNewProject}
           onOpenRecentChart={openRecentChart}
         />
-      {:else if !currentChartId}
+      {:else if !currentChartId && currentProject}
         <ProjectPage
           project={currentProject}
           {charts}
@@ -297,11 +297,11 @@
           onDeleteProject={handleDeleteProject}
           onUpdateProject={(p) => saveProject(currentUser.uid, p).catch(console.error)}
         />
-      {:else}
+      {:else if currentChart}
         <div class="flex flex-1 overflow-hidden">
           <Preview
             code={editorCode}
-            theme={currentChart?.theme || 'default'}
+            theme={currentChart.theme || 'default'}
             onThemeSwitch={handleThemeSwitch}
           />
           <Editor
