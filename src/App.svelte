@@ -39,6 +39,18 @@
   let saveDebounce = null
   let pendingChartId = null
 
+  function parseRoute(pathname) {
+    const chartMatch = pathname.match(/^\/project\/([^/]+)\/chart\/([^/]+)$/)
+    if (chartMatch) return { projectId: chartMatch[1], chartId: chartMatch[2] }
+    const projectMatch = pathname.match(/^\/project\/([^/]+)$/)
+    if (projectMatch) return { projectId: projectMatch[1], chartId: null }
+    return { projectId: null, chartId: null }
+  }
+
+  function navigate(path) {
+    if (window.location.pathname !== path) history.pushState(null, '', path)
+  }
+
   $effect(() => {
     if (!currentUser) {
       allChartsUnsubscribes.forEach(fn => fn())
@@ -77,6 +89,28 @@
       }
     }
 
+    const initialRoute = parseRoute(window.location.pathname)
+
+    const onPopState = () => {
+      const route = parseRoute(window.location.pathname)
+      if (!route.projectId) {
+        clearChartsSubscription()
+        currentProjectId = null
+        currentChartId = null
+        charts = []
+      } else if (!route.chartId) {
+        selectProject(route.projectId)
+      } else {
+        if (currentProjectId === route.projectId) {
+          openChart(route.chartId)
+        } else {
+          pendingChartId = route.chartId
+          selectProject(route.projectId)
+        }
+      }
+    }
+    window.addEventListener('popstate', onPopState)
+
     onAuthReady((user, error = '') => {
       loading = false
       if (projectsUnsubscribe) { projectsUnsubscribe(); projectsUnsubscribe = null }
@@ -92,7 +126,13 @@
       projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
         projects = updated
       })
+      if (initialRoute.projectId) {
+        if (initialRoute.chartId) pendingChartId = initialRoute.chartId
+        selectProject(initialRoute.projectId)
+      }
     })
+
+    return () => window.removeEventListener('popstate', onPopState)
   })
 
   onDestroy(() => {
@@ -107,6 +147,7 @@
   }
 
   function goHome() {
+    navigate('/')
     clearChartsSubscription()
     currentProjectId = null
     currentChartId = null
@@ -114,6 +155,7 @@
   }
 
   function selectProject(id) {
+    navigate('/project/' + id)
     if (currentProjectId === id && !currentChartId) return
     clearChartsSubscription()
     currentProjectId = id
@@ -144,6 +186,7 @@
   function openChart(id) {
     const chart = charts.find((c) => c.id === id)
     if (!chart) return
+    navigate('/project/' + currentProjectId + '/chart/' + id)
     currentChartId = id
     editorCode = chart.code || DEFAULT_CODE
     const project = projects.find((p) => p.id === currentProjectId)
@@ -179,7 +222,10 @@
   async function handleDeleteChart(id) {
     if (!currentUser || !currentProjectId) return
     await deleteChart(currentUser.uid, currentProjectId, id)
-    if (currentChartId === id) currentChartId = null
+    if (currentChartId === id) {
+      currentChartId = null
+      navigate('/project/' + currentProjectId)
+    }
   }
 
   async function handleRenameProject(id, name) {
