@@ -4,6 +4,7 @@
 
   let { code, onchange } = $props()
 
+  let syntaxError = $state('')
   let editorWidth = $state(380)
   let dragging = false
   let startX = 0
@@ -31,7 +32,7 @@
 </script>
 
 <div class="flex h-screen w-full overflow-hidden" class:select-none={dragging}>
-  <Preview {code} />
+  <Preview {code} onerror={(e) => syntaxError = e} />
   <div
     class="w-1 shrink-0 bg-slate-200 hover:bg-blue-400 active:bg-blue-500 cursor-col-resize transition-colors"
     role="separator"
@@ -39,6 +40,6 @@
     onmousedown={onDragStart}
   ></div>
   <div style="width: {editorWidth}px" class="shrink-0 flex flex-col overflow-hidden">
-    <Editor {code} {onchange} />
+    <Editor {code} {onchange} error={syntaxError} />
   </div>
 </div>
