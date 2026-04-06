@@ -65,7 +65,7 @@
 <section class="relative flex-1 min-w-0 flex flex-col {readonly ? '' : 'border-r border-slate-200'} overflow-hidden bg-white">
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
-    class="preview-container flex-1 overflow-auto p-4 flex items-start justify-center"
+    class="preview-container flex-1 overflow-auto p-4 flex items-start justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     onwheel={handleWheel}
   >
     <div bind:this={containerEl} style="flex-shrink: 0;">
