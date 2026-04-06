@@ -35,7 +35,7 @@
   }
 
   let editorWidth = $state(380)
-  let dragging = false
+  let dragging = $state(false)
   let startX = 0
   let startWidth = 0
 
@@ -114,6 +114,7 @@
   <!-- Main content -->
   <div class="flex flex-1 overflow-hidden" class:select-none={dragging}>
     <Preview {code} bind:containerEl={previewContainer} onerror={(e) => syntaxError = e} />
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       class="w-1 shrink-0 bg-slate-200 hover:bg-blue-400 active:bg-blue-500 cursor-col-resize transition-colors"
       role="separator"
