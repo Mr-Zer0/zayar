@@ -49,10 +49,10 @@
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
     bind:this={containerEl}
-    class="preview-container flex-1 overflow-auto p-4 flex items-start justify-center"
+    class="preview-container flex-1 overflow-auto p-4"
     onwheel={handleWheel}
   >
-    <div style="zoom: {zoom}">
+    <div style="zoom: {zoom}; width: fit-content; min-width: 100%; display: flex; justify-content: center;">
       {@html svgHtml}
     </div>
   </div>
