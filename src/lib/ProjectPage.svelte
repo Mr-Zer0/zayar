@@ -1,19 +1,11 @@
 <script>
   import ConfirmModal from './ConfirmModal.svelte'
+  import { formatDate } from '../utils.js'
 
   let { project, charts, onNewChart, onOpenChart, onDeleteChart, onDeleteProject, onUpdateProject } = $props()
 
   let showDeleteProject = $state(false)
   let chartToDelete = $state(null)
-
-  function formatDate(timestamp) {
-    if (!timestamp) return null
-    try {
-      return timestamp.toDate().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    } catch {
-      return null
-    }
-  }
 
   function editField(el, fallback, onSave) {
     el.contentEditable = 'true'

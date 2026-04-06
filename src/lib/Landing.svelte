@@ -1,14 +1,7 @@
 <script>
-  let { projects, recentCharts = [], onSelectProject, onNewProject, onOpenRecentChart } = $props()
+  import { formatDate } from '../utils.js'
 
-  function formatDate(timestamp) {
-    if (!timestamp) return null
-    try {
-      return timestamp.toDate().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    } catch {
-      return null
-    }
-  }
+  let { projects, recentCharts = [], onSelectProject, onNewProject, onOpenRecentChart } = $props()
 </script>
 
 <div class="flex-1 overflow-auto p-8">

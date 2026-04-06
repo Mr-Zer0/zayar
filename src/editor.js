@@ -1,5 +1,5 @@
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Transaction } from '@codemirror/state'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 
@@ -20,7 +20,8 @@ export function createEditor(container, initialCode, onChange) {
         keymap.of([...defaultKeymap, ...historyKeymap]),
         markdown(),
         EditorView.updateListener.of((update) => {
-          if (update.docChanged) {
+          const isRemote = update.transactions.some(t => t.annotation(Transaction.remote))
+          if (update.docChanged && !isRemote) {
             onChange(update.state.doc.toString())
           }
         }),
@@ -35,8 +36,10 @@ export function createEditor(container, initialCode, onChange) {
   return view
 }
 
+// Programmatically replace editor content without triggering onChange.
 export function setEditorCode(view, code) {
   view.dispatch({
     changes: { from: 0, to: view.state.doc.length, insert: code },
+    annotations: Transaction.remote.of(true),
   })
 }

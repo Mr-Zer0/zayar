@@ -2,18 +2,6 @@
 
 html, body { height: 100%; font-family: system-ui, sans-serif; font-size: 14px; }
 
-/* Ghost buttons */
-.project-delete-btn,
-.chart-delete-btn,
-.new-chart-btn-inline { background: transparent; border: none; padding: 0; }
-
-/* Show delete button when hovering the parent row */
-.project-header:hover .project-delete-btn,
-.chart-item:hover .chart-delete-btn { opacity: 1; }
-
-/* Active chart in sidebar */
-.chart-item.active { border-left-color: #2563eb; background: #f1f5f9; }
-
 /* Inline rename */
 [contenteditable="true"] { outline: 1px solid #2563eb; border-radius: 2px; padding: 0 2px; }
 
