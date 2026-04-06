@@ -2,7 +2,7 @@
   import { untrack } from 'svelte'
   import { renderMermaid } from '../preview.js'
 
-  let { code, readonly = false, onerror = () => {} } = $props()
+  let { code, readonly = false, onerror = () => {}, containerEl = $bindable(null) } = $props()
 
   const theme = 'default'
 
@@ -68,7 +68,7 @@
     class="preview-container flex-1 overflow-auto p-4 flex items-start justify-center"
     onwheel={handleWheel}
   >
-    <div style="flex-shrink: 0;">
+    <div bind:this={containerEl} style="flex-shrink: 0;">
       {@html scaledSvg}
     </div>
   </div>

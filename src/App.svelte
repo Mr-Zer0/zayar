@@ -264,6 +264,11 @@
   <ChartPage
     code={editorCode}
     onchange={handleEditorChange}
+    projectName={currentProject?.name ?? ''}
+    chartName={currentChart?.name ?? ''}
+    onrenamechart={(name) => handleRenameChart(currentChartId, name)}
+    ongoback={() => selectProject(currentProjectId)}
+    ongohome={goHome}
   />
 {:else if currentProject}
   <ProjectPage
