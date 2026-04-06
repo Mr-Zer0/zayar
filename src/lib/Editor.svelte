@@ -22,6 +22,6 @@
   })
 </script>
 
-<section class="flex flex-col overflow-hidden bg-[#fafafa]">
+<section class="flex-1 min-w-0 flex flex-col overflow-hidden bg-[#fafafa]">
   <div bind:this={container} class="flex-1 overflow-hidden"></div>
 </section>

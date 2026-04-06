@@ -5,7 +5,7 @@
   let { code, theme, onchange, onThemeSwitch } = $props()
 </script>
 
-<div class="flex h-screen">
+<div class="flex h-screen w-full">
   <Preview {code} {theme} {onThemeSwitch} />
   <Editor {code} {onchange} />
 </div>
