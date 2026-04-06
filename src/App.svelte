@@ -236,11 +236,6 @@
     await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
   }
 
-  async function handleThemeSwitch(theme) {
-    if (!currentUser || !currentProjectId || !currentChartId || !currentChart) return
-    saveChart(currentUser.uid, currentProjectId, { ...currentChart, theme }).catch(console.error)
-  }
-
   function handleEditorChange(code) {
     editorCode = code
     clearTimeout(saveDebounce)
@@ -260,7 +255,7 @@
       <span class="text-xs text-gray-500 bg-slate-100 px-2.5 py-0.5 rounded-full">Read-only preview</span>
     </div>
     <div class="flex-1 flex flex-col bg-white overflow-auto">
-      <Preview code={shareCode} theme="default" readonly={true} />
+      <Preview code={shareCode} readonly={true} />
     </div>
   </div>
 {:else if !currentUser}
@@ -268,9 +263,7 @@
 {:else if currentChart}
   <ChartPage
     code={editorCode}
-    theme={currentChart.theme || 'default'}
     onchange={handleEditorChange}
-    onThemeSwitch={handleThemeSwitch}
   />
 {:else if currentProject}
   <ProjectPage

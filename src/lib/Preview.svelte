@@ -2,7 +2,9 @@
   import { untrack } from 'svelte'
   import { renderMermaid, exportSVG, exportPNG } from '../preview.js'
 
-  let { code, theme = 'default', readonly = false, onThemeSwitch = () => {} } = $props()
+  let { code, readonly = false } = $props()
+
+  const theme = 'default'
 
   let containerEl = null
   let svgHtml = $state('')
@@ -61,14 +63,6 @@
 
   {#if !readonly}
     <div class="bg-white border-t border-slate-200 px-3 py-2 flex justify-between items-center gap-2 shrink-0">
-      <div class="flex gap-1.5">
-        {#each ['default', 'forest', 'dark', 'neutral'] as t (t)}
-          <button
-            class="theme-btn {theme === t ? 'active' : ''}"
-            onclick={() => onThemeSwitch(t)}
-          >{t.charAt(0).toUpperCase() + t.slice(1)}</button>
-        {/each}
-      </div>
       <div class="flex items-center gap-2">
         <div class="flex items-center gap-0.5">
           <button onclick={zoomOut} disabled={zoom <= ZOOM_MIN} title="Zoom out">
