@@ -12,19 +12,20 @@ export async function renderMermaid(code, theme) {
     mermaid.initialize({ startOnLoad: false, theme: currentTheme, securityLevel: 'loose' })
   }
   try {
-    const id = 'mermaid-' + Date.now()
-    const { svg } = await mermaid.render(id, code)
-    const viewBoxMatch = svg.match(/viewBox="([^"]*)"/)
-    let naturalWidth = null, naturalHeight = null
-    if (viewBoxMatch) {
-      const parts = viewBoxMatch[1].trim().split(/[\s,]+/)
-      naturalWidth = parseFloat(parts[2])
-      naturalHeight = parseFloat(parts[3])
-    }
-    return { svg, naturalWidth, naturalHeight, error: null }
+    await mermaid.parse(code)
   } catch (err) {
     return { svg: null, error: err.message || 'Mermaid parse error' }
   }
+  const id = 'mermaid-' + Date.now()
+  const { svg } = await mermaid.render(id, code)
+  const viewBoxMatch = svg.match(/viewBox="([^"]*)"/)
+  let naturalWidth = null, naturalHeight = null
+  if (viewBoxMatch) {
+    const parts = viewBoxMatch[1].trim().split(/[\s,]+/)
+    naturalWidth = parseFloat(parts[2])
+    naturalHeight = parseFloat(parts[3])
+  }
+  return { svg, naturalWidth, naturalHeight, error: null }
 }
 
 export function exportSVG(containerEl) {
