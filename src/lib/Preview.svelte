@@ -10,11 +10,13 @@
   let prevTheme = untrack(() => theme)
 
   $effect(() => {
-    const isThemeChange = theme !== prevTheme
-    prevTheme = theme
+    const currentCode = code
+    const currentTheme = theme
+    const isThemeChange = currentTheme !== prevTheme
+    prevTheme = currentTheme
     const delay = (isThemeChange || readonly) ? 0 : 300
     const timeout = setTimeout(async () => {
-      const result = await renderMermaid(code, theme)
+      const result = await renderMermaid(currentCode, currentTheme)
       if (result.svg) {
         svgHtml = result.svg
         error = ''
