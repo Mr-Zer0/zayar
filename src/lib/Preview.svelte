@@ -1,13 +1,14 @@
 <script>
   import { untrack } from 'svelte'
-  import { renderMermaid, exportSVG, exportPNG } from '../preview.js'
+  import { renderMermaid } from '../preview.js'
 
-  let { code, readonly = false } = $props()
+  let { code, readonly = false, onerror = () => {} } = $props()
 
   const theme = 'default'
 
-  let containerEl = null
   let svgHtml = $state('')
+  let naturalWidth = $state(null)
+  let naturalHeight = $state(null)
   let error = $state('')
   let prevTheme = untrack(() => theme)
   let zoom = $state(1)
@@ -26,6 +27,18 @@
     e.deltaY < 0 ? zoomIn() : zoomOut()
   }
 
+  let scaledSvg = $derived(
+    svgHtml && naturalWidth && naturalHeight
+      ? svgHtml.replace(/<svg([^>]*)>/, (_, attrs) => {
+          const clean = attrs
+            .replace(/\s*width="[^"]*"/, '')
+            .replace(/\s*height="[^"]*"/, '')
+            .replace(/max-width\s*:\s*[^;"]*;?\s*/, '')
+          return `<svg${clean} width="${Math.round(naturalWidth * zoom)}" height="${Math.round(naturalHeight * zoom)}">`
+        })
+      : svgHtml
+  )
+
   $effect(() => {
     const currentCode = code
     const currentTheme = theme
@@ -36,52 +49,57 @@
       const result = await renderMermaid(currentCode, currentTheme)
       if (result.svg) {
         svgHtml = result.svg
+        naturalWidth = result.naturalWidth
+        naturalHeight = result.naturalHeight
         error = ''
+        onerror('')
       } else {
         error = result.error || ''
+        onerror(error)
       }
     }, delay)
     return () => clearTimeout(timeout)
   })
 </script>
 
-<section class="flex-1 min-w-0 flex flex-col {readonly ? '' : 'border-r border-slate-200'} overflow-hidden bg-white">
+<section class="relative flex-1 min-w-0 flex flex-col {readonly ? '' : 'border-r border-slate-200'} overflow-hidden bg-white">
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
-    bind:this={containerEl}
-    class="preview-container flex-1 overflow-auto p-4"
+    class="preview-container flex-1 overflow-auto p-4 flex items-start justify-center"
     onwheel={handleWheel}
   >
-    <div style="zoom: {zoom}; width: fit-content; min-width: 100%; display: flex; justify-content: center;">
-      {@html svgHtml}
+    <div style="flex-shrink: 0;">
+      {@html scaledSvg}
     </div>
   </div>
 
-  {#if error}
-    <div class="bg-red-500 text-white text-xs px-3 py-1.5 whitespace-pre-wrap break-all">{error}</div>
-  {/if}
-
   {#if !readonly}
-    <div class="bg-white border-t border-slate-200 px-3 py-2 flex justify-between items-center gap-2 shrink-0">
-      <div class="flex items-center gap-2">
-        <div class="flex items-center gap-0.5">
-          <button onclick={zoomOut} disabled={zoom <= ZOOM_MIN} title="Zoom out">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-            </svg>
-          </button>
-          <button onclick={resetZoom} class="w-12 text-xs tabular-nums" title="Reset zoom">{Math.round(zoom * 100)}%</button>
-          <button onclick={zoomIn} disabled={zoom >= ZOOM_MAX} title="Zoom in">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </button>
-        </div>
-        <div class="flex gap-1.5">
-          <button onclick={() => exportSVG(containerEl)}>Export SVG</button>
-          <button onclick={() => exportPNG(containerEl)}>Export PNG</button>
-        </div>
-      </div>
+    <div class="absolute bottom-6 right-6 flex flex-col gap-1">
+      <button
+        onclick={zoomIn}
+        disabled={zoom >= ZOOM_MAX}
+        title="Zoom in"
+        class="size-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
+      <button
+        onclick={resetZoom}
+        title="Reset zoom"
+        class="size-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm text-slate-600 hover:bg-slate-50 text-[10px] tabular-nums transition-colors"
+      >{Math.round(zoom * 100)}%</button>
+      <button
+        onclick={zoomOut}
+        disabled={zoom <= ZOOM_MIN}
+        title="Zoom out"
+        class="size-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+        </svg>
+      </button>
     </div>
   {/if}
 </section>
