@@ -93,7 +93,6 @@
               class="group text-left bg-white border border-slate-200 rounded-xl p-6 cursor-pointer hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
               onclick={() => onSelectProject(project.id)}
             >
-              <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div class="flex flex-col h-full relative z-10">
                 <div class="flex items-start justify-between gap-3 mb-4">
                   <span class="text-[17px] font-bold text-slate-800 leading-snug break-words group-hover:text-blue-600 transition-colors">{project.name}</span>
