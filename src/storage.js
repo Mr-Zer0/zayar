@@ -27,12 +27,12 @@ function withTimestamps(data) {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
-export function subscribeProjects(uid, onChange) {
+export function subscribeProjects(uid, onChange, onError) {
   const q = query(projectsRef(uid), orderBy('updatedAt', 'desc'))
   return onSnapshot(q, (snap) => {
     const projects = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     onChange(projects)
-  })
+  }, onError)
 }
 
 export async function saveProject(uid, project) {
@@ -47,12 +47,12 @@ export async function deleteProject(uid, projectId) {
 
 // ── Charts ────────────────────────────────────────────────────────────────────
 
-export function subscribeCharts(uid, projectId, onChange) {
+export function subscribeCharts(uid, projectId, onChange, onError) {
   const q = query(chartsRef(uid, projectId), orderBy('updatedAt', 'desc'))
   return onSnapshot(q, (snap) => {
     const charts = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     onChange(charts)
-  })
+  }, onError)
 }
 
 export async function saveChart(uid, projectId, chart) {
