@@ -21,6 +21,14 @@
   let loading = $state(true)
   let currentUser = $state(null)
   let authError = $state('')
+  let toastMessage = $state('')
+  let toastTimer = null
+
+  function showError(err) {
+    toastMessage = err?.message || String(err)
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => toastMessage = '', 4000)
+  }
 
   let projects = $state([])
   let charts = $state([])
@@ -131,7 +139,7 @@
       projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
         projects = updated
         dataLoaded = true
-      })
+      }, showError)
       if (initialRoute.projectId) {
         if (initialRoute.chartId) pendingChartId = initialRoute.chartId
         selectProject(initialRoute.projectId)
@@ -146,6 +154,7 @@
     clearChartsSubscription()
     allChartsUnsubscribes.forEach(fn => fn())
     clearTimeout(saveDebounce)
+    clearTimeout(toastTimer)
   })
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,7 +189,7 @@
         const target = charts.find((c) => c.id === pendingChartId)
         if (target) { pendingChartId = null; openChart(target.id) }
       }
-    })
+    }, showError)
   }
 
   function openChart(id) {
@@ -208,42 +217,54 @@
   async function handleNewProject() {
     if (!currentUser) return
     const project = { id: crypto.randomUUID(), name: 'Untitled project', description: '', createdAt: null, updatedAt: null }
-    await saveProject(currentUser.uid, project)
-    selectProject(project.id)
+    try {
+      await saveProject(currentUser.uid, project)
+      selectProject(project.id)
+    } catch (err) { showError(err) }
   }
 
   async function handleDeleteProject(id) {
     if (!currentUser) return
     if (currentProjectId === id) goHome()
-    await deleteProject(currentUser.uid, id)
+    try {
+      await deleteProject(currentUser.uid, id)
+    } catch (err) { showError(err) }
   }
 
   async function handleNewChart() {
     if (!currentUser || !currentProjectId) return
     const chart = { id: crypto.randomUUID(), name: 'Untitled chart', code: DEFAULT_CODE, theme: 'default', createdAt: null, updatedAt: null }
-    await saveChart(currentUser.uid, currentProjectId, chart)
-    openChart(chart.id)
+    try {
+      await saveChart(currentUser.uid, currentProjectId, chart)
+      openChart(chart.id)
+    } catch (err) { showError(err) }
   }
 
   async function handleDeleteChart(id) {
     if (!currentUser || !currentProjectId) return
-    await deleteChart(currentUser.uid, currentProjectId, id)
-    if (currentChartId === id) {
-      currentChartId = null
-      navigate('/project/' + currentProjectId)
-    }
+    try {
+      await deleteChart(currentUser.uid, currentProjectId, id)
+      if (currentChartId === id) {
+        currentChartId = null
+        navigate('/project/' + currentProjectId)
+      }
+    } catch (err) { showError(err) }
   }
 
   async function handleRenameProject(id, name) {
     const project = projects.find((p) => p.id === id)
     if (!project) return
-    await saveProject(currentUser.uid, { ...project, name })
+    try {
+      await saveProject(currentUser.uid, { ...project, name })
+    } catch (err) { showError(err) }
   }
 
   async function handleRenameChart(id, name) {
     const chart = charts.find((c) => c.id === id)
     if (!chart) return
-    await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
+    try {
+      await saveChart(currentUser.uid, currentProjectId, { ...chart, name })
+    } catch (err) { showError(err) }
   }
 
   function handleEditorChange(code) {
@@ -251,10 +272,16 @@
     clearTimeout(saveDebounce)
     saveDebounce = setTimeout(() => {
       if (!currentUser || !currentProjectId || !currentChartId || !currentChart) return
-      saveChart(currentUser.uid, currentProjectId, { ...currentChart, code }).catch(console.error)
+      saveChart(currentUser.uid, currentProjectId, { ...currentChart, code }).catch(showError)
     }, 1500)
   }
 </script>
+
+{#if toastMessage}
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg max-w-sm text-center">
+    {toastMessage}
+  </div>
+{/if}
 
 {#if loading}
   <!-- blank while Firebase checks auth -->
@@ -301,7 +328,7 @@
     onOpenChart={openChart}
     onDeleteChart={handleDeleteChart}
     onDeleteProject={handleDeleteProject}
-    onUpdateProject={(p) => saveProject(currentUser.uid, p).catch(console.error)}
+    onUpdateProject={(p) => saveProject(currentUser.uid, p).catch(showError)}
   />
 {:else}
   <LandingPage
