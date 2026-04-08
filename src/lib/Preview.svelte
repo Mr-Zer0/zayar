@@ -10,6 +10,17 @@
   let naturalWidth = $state(null)
   let naturalHeight = $state(null)
   let error = $state('')
+  let previewContainerEl = $state(null)
+  let containerWidth = $state(0)
+
+  $effect(() => {
+    if (!previewContainerEl) return
+    const ro = new ResizeObserver(([entry]) => {
+      containerWidth = entry.contentRect.width
+    })
+    ro.observe(previewContainerEl)
+    return () => ro.disconnect()
+  })
   let prevTheme = untrack(() => theme)
   let zoom = $state(1)
 
@@ -34,7 +45,8 @@
             .replace(/\s*width="[^"]*"/, '')
             .replace(/\s*height="[^"]*"/, '')
             .replace(/max-width\s*:\s*[^;"]*;?\s*/, '')
-          return `<svg${clean} width="${Math.round(naturalWidth * zoom)}" height="${Math.round(naturalHeight * zoom)}">`
+          return `<svg${clean} width="100%" height="auto">`
+            
         })
       : svgHtml
   )
@@ -65,10 +77,14 @@
 <section class="relative flex-1 min-w-0 flex flex-col {readonly ? '' : 'border-r border-slate-200'} overflow-hidden bg-white">
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
-    class="preview-container flex-1 overflow-auto p-4 flex items-start justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    bind:this={previewContainerEl}
+    class="preview-container flex-1 overflow-auto p-4 flex items-start [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     onwheel={handleWheel}
   >
-    <div bind:this={containerEl} style="flex-shrink: 0;">
+    <div
+      bind:this={containerEl}
+      style="flex-shrink: 0; width: {naturalWidth && containerWidth ? `${Math.round(Math.min(naturalWidth, containerWidth) * zoom)}px` : '100%'}; margin: 0 auto;"
+    >
       {@html scaledSvg}
     </div>
   </div>
