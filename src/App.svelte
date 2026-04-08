@@ -26,6 +26,9 @@
   let charts = $state([])
   let allCharts = $state([])
 
+  let dataLoaded = $state(false)
+  let chartsLoaded = $state(false)
+
   let currentProjectId = $state(null)
   let currentChartId = $state(null)
   let editorCode = $state(DEFAULT_CODE)
@@ -97,6 +100,7 @@
         currentProjectId = null
         currentChartId = null
         charts = []
+        chartsLoaded = false
       } else if (!route.chartId) {
         selectProject(route.projectId)
       } else {
@@ -117,13 +121,16 @@
       if (!user) {
         currentUser = null
         authError = error
+        dataLoaded = true
         return
       }
       currentUser = user
       authError = ''
+      dataLoaded = false
       migrateFlatCharts(user.uid).catch(console.error)
       projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
         projects = updated
+        dataLoaded = true
       })
       if (initialRoute.projectId) {
         if (initialRoute.chartId) pendingChartId = initialRoute.chartId
@@ -155,6 +162,7 @@
     currentProjectId = null
     currentChartId = null
     charts = []
+    chartsLoaded = false
   }
 
   function selectProject(id) {
@@ -164,8 +172,10 @@
     currentProjectId = id
     currentChartId = null
     charts = []
+    chartsLoaded = false
     chartsUnsubscribe = subscribeCharts(currentUser.uid, id, (updated) => {
       charts = updated
+      chartsLoaded = true
       if (pendingChartId) {
         const target = charts.find((c) => c.id === pendingChartId)
         if (target) { pendingChartId = null; openChart(target.id) }
@@ -260,6 +270,11 @@
   </div>
 {:else if !currentUser}
   <LoginPage error={authError} />
+{:else if !dataLoaded || (currentProjectId && !chartsLoaded)}
+  <div class="flex flex-col items-center justify-center h-screen bg-slate-50 gap-4">
+    <div class="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+    <span class="text-sm font-medium text-slate-500 animate-pulse">Loading workspace...</span>
+  </div>
 {:else if currentChart}
   <ChartPage
     code={editorCode}
