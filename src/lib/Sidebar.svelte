@@ -76,7 +76,12 @@
             <button
               class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal'}"
               onclick={() => onSelectProject(project.id)}
-            >{project.name}</button>
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+              </svg>
+              {project.name}
+            </button>
           </li>
         {/each}
       {/if}
@@ -99,9 +104,14 @@
       {#each filteredProjects as project (project.id)}
         <li>
           <button
-            class="flex items-center w-full px-5 py-2.5 gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors {project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal'}"
+            class="flex items-center w-full px-5 py-2.5 gap-3 hover:bg-slate-100 cursor-pointer transition-colors"
             onclick={() => onSelectProject(project.id)}
-          >{project.name}</button>
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0 {project.id === currentProjectId ? 'text-slate-600' : 'text-slate-500'}">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+            </svg>
+            <span class="{project.id === currentProjectId ? 'font-semibold text-slate-700' : 'font-normal text-slate-600'}">{project.name}</span>
+          </button>
         </li>
       {/each}
     {/if}
