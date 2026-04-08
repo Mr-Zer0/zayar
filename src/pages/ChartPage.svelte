@@ -34,6 +34,7 @@
     if (e.key === 'Escape') cancelRename()
   }
 
+  let editorVisible = $state(true)
   let editorWidth = $state(380)
   let dragging = $state(false)
   let startX = 0
@@ -97,6 +98,11 @@
     </nav>
     <div class="flex items-center gap-1.5 shrink-0">
       <button
+        onclick={() => editorVisible = !editorVisible}
+        title="{editorVisible ? 'Hide' : 'Show'} editor"
+        class="h-7 px-2.5 text-xs text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
+      >{editorVisible ? 'Hide editor' : 'Show editor'}</button>
+      <button
         onclick={handleExportSVG}
         class="h-7 px-2.5 text-xs text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
       >Export SVG</button>
@@ -114,15 +120,17 @@
   <!-- Main content -->
   <div class="flex flex-1 overflow-hidden" class:select-none={dragging}>
     <Preview {code} bind:containerEl={previewContainer} onerror={(e) => syntaxError = e} />
-    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <div
-      class="w-1 shrink-0 bg-slate-200 hover:bg-blue-400 active:bg-blue-500 cursor-col-resize transition-colors"
-      role="separator"
-      aria-orientation="vertical"
-      onmousedown={onDragStart}
-    ></div>
-    <div style="width: {editorWidth}px" class="shrink-0 flex flex-col overflow-hidden">
-      <Editor {code} {onchange} error={syntaxError} />
-    </div>
+    {#if editorVisible}
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+      <div
+        class="w-1 shrink-0 bg-slate-200 hover:bg-blue-400 active:bg-blue-500 cursor-col-resize transition-colors"
+        role="separator"
+        aria-orientation="vertical"
+        onmousedown={onDragStart}
+      ></div>
+      <div style="width: {editorWidth}px" class="shrink-0 flex flex-col overflow-hidden">
+        <Editor {code} {onchange} error={syntaxError} />
+      </div>
+    {/if}
   </div>
 </div>
