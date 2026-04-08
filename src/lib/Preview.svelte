@@ -26,7 +26,7 @@
 
   const ZOOM_STEP = 0.25
   const ZOOM_MIN = 0.25
-  const ZOOM_MAX = 4
+  const ZOOM_MAX = 4.5
 
   function zoomIn() { zoom = Math.min(+(zoom + ZOOM_STEP).toFixed(2), ZOOM_MAX) }
   function zoomOut() { zoom = Math.max(+(zoom - ZOOM_STEP).toFixed(2), ZOOM_MIN) }
