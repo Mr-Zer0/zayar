@@ -1,6 +1,6 @@
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view'
 import { EditorState, Transaction } from '@codemirror/state'
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
+import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
 import { StreamLanguage, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 
 // Mermaid stream tokenizer
@@ -66,7 +66,7 @@ export function createEditor(container, initialCode, onChange) {
         rectangularSelection(),
         crosshairCursor(),
         highlightActiveLine(),
-        keymap.of([...defaultKeymap, ...historyKeymap]),
+        keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap]),
         mermaidLanguage,
         syntaxHighlighting(defaultHighlightStyle),
         EditorView.updateListener.of((update) => {
