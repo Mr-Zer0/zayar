@@ -8,6 +8,7 @@
   import LandingPage from './pages/LandingPage.svelte'
   import ProjectPage from './pages/ProjectPage.svelte'
   import ChartPage from './pages/ChartPage.svelte'
+  import NotFoundPage from './pages/NotFoundPage.svelte'
   import Preview from './lib/Preview.svelte'
 
   const DEFAULT_CODE = `flowchart TD
@@ -53,6 +54,20 @@
   let allChartsUnsubscribes = []
   let saveDebounce = null
   let pendingChartId = null
+
+  let currentPath = $state(window.location.pathname)
+  let routeParams = $derived(parseRoute(currentPath))
+  let is404 = $derived.by(() => {
+    if (!dataLoaded) return false
+    if (currentPath !== '/' && !routeParams.projectId) return true
+    if (routeParams.projectId) {
+      if (!currentProject) return true
+      if (routeParams.chartId) {
+        if (chartsLoaded && !currentChart) return true
+      }
+    }
+    return false
+  })
 
   // ── Subscriptions ─────────────────────────────────────────────────────────────
 
@@ -102,7 +117,8 @@
     const initialRoute = parseRoute(window.location.pathname)
 
     const onPopState = () => {
-      const route = parseRoute(window.location.pathname)
+      currentPath = window.location.pathname
+      const route = parseRoute(currentPath)
       if (!route.projectId) {
         clearChartsSubscription()
         currentProjectId = null
@@ -167,6 +183,7 @@
 
   function goHome() {
     navigate('/')
+    currentPath = '/'
     clearChartsSubscription()
     currentProjectId = null
     currentChartId = null
@@ -176,6 +193,7 @@
 
   function selectProject(id) {
     navigate('/project/' + id)
+    currentPath = '/project/' + id
     if (currentProjectId === id && !currentChartId) return
     clearChartsSubscription()
     currentProjectId = id
@@ -188,6 +206,7 @@
       if (pendingChartId) {
         const target = charts.find((c) => c.id === pendingChartId)
         if (target) { pendingChartId = null; openChart(target.id) }
+        else { pendingChartId = null }
       }
     }, showError)
   }
@@ -196,6 +215,7 @@
     const chart = charts.find((c) => c.id === id)
     if (!chart) return
     navigate('/project/' + currentProjectId + '/chart/' + id)
+    currentPath = '/project/' + currentProjectId + '/chart/' + id
     currentChartId = id
     editorCode = chart.code || DEFAULT_CODE
     const project = projects.find((p) => p.id === currentProjectId)
@@ -247,6 +267,7 @@
       if (currentChartId === id) {
         currentChartId = null
         navigate('/project/' + currentProjectId)
+        currentPath = '/project/' + currentProjectId
       }
     } catch (err) { showError(err) }
   }
@@ -297,11 +318,13 @@
   </div>
 {:else if !currentUser}
   <LoginPage error={authError} />
-{:else if !dataLoaded || (currentProjectId && !chartsLoaded)}
+{:else if !dataLoaded || (!is404 && currentProjectId && !chartsLoaded)}
   <div class="flex flex-col items-center justify-center h-screen bg-slate-50 gap-4">
     <div class="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
     <span class="text-sm font-medium text-slate-500 animate-pulse">Loading workspace...</span>
   </div>
+{:else if is404}
+  <NotFoundPage onGoHome={goHome} />
 {:else if currentChart}
   <ChartPage
     code={editorCode}
