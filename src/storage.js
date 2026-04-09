@@ -25,6 +25,9 @@ function withTimestamps(data) {
   return result
 }
 
+// Reuse live chart subscriptions so the same Firestore query is only opened once.
+const chartSubscriptionPool = new Map()
+
 // ── Projects ──────────────────────────────────────────────────────────────────
 
 export function subscribeProjects(uid, onChange, onError) {
@@ -48,11 +51,41 @@ export async function deleteProject(uid, projectId) {
 // ── Charts ────────────────────────────────────────────────────────────────────
 
 export function subscribeCharts(uid, projectId, onChange, onError) {
-  const q = query(chartsRef(uid, projectId), orderBy('updatedAt', 'desc'))
-  return onSnapshot(q, (snap) => {
-    const charts = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    onChange(charts)
-  }, onError)
+  const key = `${uid}:${projectId}`
+  let entry = chartSubscriptionPool.get(key)
+
+  if (!entry) {
+    entry = {
+      listeners: new Set(),
+      errorListeners: new Set(),
+      lastCharts: null,
+      unsubscribe: null,
+    }
+    const q = query(chartsRef(uid, projectId), orderBy('updatedAt', 'desc'))
+    entry.unsubscribe = onSnapshot(q, (snap) => {
+      const charts = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      entry.lastCharts = charts
+      for (const listener of entry.listeners) listener(charts)
+    }, (error) => {
+      for (const listener of entry.errorListeners) listener(error)
+    })
+    chartSubscriptionPool.set(key, entry)
+  }
+
+  entry.listeners.add(onChange)
+  if (typeof onError === 'function') entry.errorListeners.add(onError)
+  if (entry.lastCharts) onChange(entry.lastCharts)
+
+  return () => {
+    const existing = chartSubscriptionPool.get(key)
+    if (!existing) return
+    existing.listeners.delete(onChange)
+    if (typeof onError === 'function') existing.errorListeners.delete(onError)
+    if (existing.listeners.size === 0 && existing.errorListeners.size === 0) {
+      existing.unsubscribe?.()
+      chartSubscriptionPool.delete(key)
+    }
+  }
 }
 
 export async function saveChart(uid, projectId, chart) {
