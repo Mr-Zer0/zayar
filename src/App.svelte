@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { onAuthReady, signOut } from './auth.js'
-  import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart, migrateFlatCharts } from './storage.js'
+  import { subscribeProjects, saveProject, deleteProject, subscribeCharts, saveChart, deleteChart } from './storage.js'
   import { initMermaid } from './preview.js'
   import { parseRoute, navigate } from './router.js'
   import LoginPage from './pages/LoginPage.svelte'
@@ -151,7 +151,6 @@
       currentUser = user
       authError = ''
       dataLoaded = false
-      migrateFlatCharts(user.uid).catch(console.error)
       projectsUnsubscribe = subscribeProjects(user.uid, (updated) => {
         projects = updated
         dataLoaded = true
